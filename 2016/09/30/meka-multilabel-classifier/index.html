@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      使用meka实现multilabel classifier | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>使用meka实现multilabel classifier</h2>
+  <p class="post-date">2016-09-30</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p>乍一看题目，使用”<strong>meka</strong>“实现分类器，是不是笔者打错了啊，应该是weka啊。其实不然，这世上还真有一个叫meka的包，并且他还跟weka算是亲戚关系。只不过，这个meka是一个专门用来解决多标签分类问题的包，并且是基于weka的，可以算作是weka的一个扩展。 那好，什么是多标签分类呢？我们先来看一个示例：如果我有一篇文章，我要推断它是不是“体育”类新闻，那么分类标签就只有<strong>“是”</strong>或者<strong>“不是”</strong>，这种问题就是经典的二分类<strong>(binary classifier)</strong>问题。好，再复杂一点，如果我们要判断这篇文章是属于“体育”、“财经”、“社会”中的哪一类？那么这个问题就变成了一个多类分类问题<strong>(multiclass classifier)</strong>，注意，对于每篇文章它只能属于“体育”、“财经”、“社会”中的<strong>某一类</strong>，不能属于多个类。也就是我们的样本的标签可以是[0,0,1]或者[0,1,0]或者[1,0,0]，但绝不可能是[1,1,0]或者[1,0,1]等。好了，与多分类对应的就是多标签分类<strong>(multilabel classifier)</strong>，它是解决什么问题的呢？如果一篇文章，它既能属于“体育”类，又能属于“财经类”，甚至还能属于“社会”类，也就是我们待分类的文章有可能同时分到多个类中去，对于这样的分类我们就叫多标签分类。 明白了多标签分类的概念，我们怎么实现呢？其实说到底，多类分类，多标签分类，其实底层都是二分类组合。我们当然可以自己手动实现。但有没有已有的库来帮助我们实现呢？当然有！！！<a href="http://scikit-learn.org/stable/modules/multiclass.html" target="_blank" rel="noopener">sklearn</a>中已经有实现多标签分类的方法了，它的底层支持可以是Decision Trees, Random Forests以及Nearest Neighbors. 不过我们这次不使用我们优雅的sklearn，要跳到JAVA的坑去（好桑心）。JAVA中比较有名的多标签分类包是<a href="http://mulan.sourceforge.net/" target="_blank" rel="noopener">mulan</a>以及meka,我们今天只讲meka，至于mulan的实现方法其实也跟meka很像，甚至在meka中都已经集成了mulan的jar包。 <a href="http://meka.sourceforge.net/" target="_blank" rel="noopener">meka</a>是由三个大牛Jesse Read、Peter Reutemann、Joerg Wicker实现，并且现在已经开源到<a href="https://github.com/Waikato/meka" target="_blank" rel="noopener">github</a>了，与weka其实是师出同门。meka的使用基本与weka一致，它甚至到包含一个客户端，长相也跟weka很像。 <img src="https://ayonel.me/wp-content/uploads/2016/09/meka-300x225.jpg" alt="meka"> 对于图形界面的使用，可以去看看它们的<a href="https://sourceforge.net/projects/meka/files/meka-1.9.0/Tutorial.pdf" target="_blank" rel="noopener">官方教程</a>，很详细。我们今天来说一说如何使用集成meka-1.9.0.jar来进行编程实现。这个jar包存在于lib文件夹下。 meka也是用arff文件作为输入。官方文档中有这么一句话：”A suitable dataset is the only requirement to begin running experiments with Meka.”,足见meka使用之方便~~ meka中已经自带了几个用于实现多标签分类的数据集在data目录下，这个数据集是描述某段音频的特征，以及它们属于哪些分类（是悲伤类的还是安静类的亦或是疯狂摇滚的…）我们来看看大概看看，每行%后面是我自己加的注释： <code>% &#39;Music&#39; dataset; normalised version. @relation &#39;Music: -C 6&#39; %代表标签一共有6类 @attribute amazed-suprised {0,1} %第一个分类标签，取值是0或者1，代表是或者不是 @attribute happy-pleased {0,1} %第二个分类标签 @attribute relaxing-clam {0,1} %第三个分类标签 @attribute quiet-still {0,1} %第四个分类标签 @attribute sad-lonely {0,1} %第五个分类标签 @attribute angry-aggresive {0,1} %第六个分类标签 @attribute Mean_Acc1298_Mean_Mem40_Centroid numeric %第一个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_Rolloff numeric %第二个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_Flux numeric %第三个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_MFCC_0 numeric %第四个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_MFCC_1 numeric %第五个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_MFCC_2 numeric %第六个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_MFCC_3 numeric %第七个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_MFCC_4 numeric %第八个特征，numeric类型 @attribute Mean_Acc1298_Mean_Mem40_MFCC_5 numeric %第九个特征，numeric类型 .... @data 0,1,1,0,0,0,0.132498,0.077848,0.229227,0.602629,0.512861,0.467404,0.529733,0.573498,0.592831,0.520031,0.598853,0.537699,0.780658,0.462982,0.407108,0.684364,0.135824,0.245631,0.157515,0.301285,0.350107,0.459476,0.583274,0.430053,0.416198,0.581916,0.342758,0.309345,0.388929,0.323521,0.455207,0.26139,0.027559,0.149077,0.195433,0.571354,0.326404,0.246745,0.524645,0.354798,0.240244,0.239788,0.128689,0.173252,0.204863,0.131632,0.245653,0.144607,0.258203,0.470051,0.259909,0.61364,0.458314,0.434716,0.448941,0.370609,0.285647,0.663082,0.29708,0.273671,0.286411,0.197026,0.196244,0.164323,0.030017,0.253968,0.008473,0.240602,0.136735,0.058442,0.107594 %第一条数据 1,0,0,0,0,1,0.384281,0.355249,0.16719,0.853089,0.260577,0.332757,0.15393,0.519381,0.268043,0.251955,0.459922,0.430814,0.654323,0.641021,0.356511,0.647367,0.367659,0.539078,0.100569,0.133502,0.337194,0.319752,0.349012,0.171182,0.191357,0.390569,0.289253,0.208641,0.341328,0.265669,0.273736,0.181791,0.028513,0.252827,0.25819,0.011351,0.236247,0.069285,0.192754,0.154258,0.128671,0.116726,0.059704,0.073697,0.080341,0.062701,0.075672,0.041256,0.207782,0.300735,0.888274,0.444,0.294673,0.210429,0.132036,0.167474,0.205996,0.155514,0.086631,0.071462,0.067492,0.093526,0.085649,0.025101,0.182955,0.285714,0.156764,0.270677,0.191377,0.153728,0.197951 %第二条数据</code> 与weka有点区别的是，对于标签在每个样本集中的位置，weka一般是放在每行末尾，虽然可以放在每行的任意位置，可以通过Instances.setClassIndex(n)方法，来指定每行的第n位是属于分类标签。 先来上代码吧： <code>package com.ayonel.meka; import meka.classifiers.multilabel.BR; import weka.classifiers.bayes.NaiveBayesMultinomialUpdateable; import weka.core.Instances; import weka.core.converters.ArffLoader; import java.io.File; /** * @author ayonel * @created_at 16/9/27 */ public class YYRec { public static void main(String[] args) throws Exception{ ArffLoader loader = new ArffLoader(); loader.setFile(new File(&quot;testdata/Music.arff&quot;)); //读取测试集 loader.getStructure(); Instances originDataSet = loader.getDataSet(); //获取测试集 originDataSet.setClassIndex(6); //这一步是指定前6个元素作为分类标签 BR br = new BR(); //建立分类器 br.buildClassifier(originDataSet);//开始训练 double [] result = br.distributionForInstance(originDataSet.instance(0));//对训练集中的第一个实例进行预测 //输出每个标签的预测结果（为1的概率值） for(int i=0; i 输出结果： ` 0.0 1.0 0.9859154929577465 0.034482758620689655 0.0 0.013452914798206279 ` 甚至还可以使用多标签分类进行增量学习，使用： meka.classifiers.multilabel.incremental.BRUpdateable类，该类底层使用weka.classifiers.trees.HoeffdingTree来实现。</code></p>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2016/09/21/sklearn-naive-bayes/">
+        <span class="nav-arrow">← </span>
+        
+          用sklearn实现多项式朴素贝叶斯增量学习
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2016/11/21/package-source-node/">
+        
+          为nodejs替换包安装源
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="nav">none</ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2016/09/30/meka-multilabel-classifier/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "yanm1ng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "使用meka实现multilabel classifier",
+        owner: "yanm1ng",
+        repo: "yanm1ng.github.io",
+        oauth: {
+          client_id: "0f87e490e00ee3fd87ef",
+          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://yoursite.com/2016/09/30/meka-multilabel-classifier/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>

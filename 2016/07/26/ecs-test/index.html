@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      苦逼的一天：运维真辛苦 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>苦逼的一天：运维真辛苦</h2>
+  <p class="post-date">2016-07-26</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p>今天打算好好测一下我们的哒哒相机APP (友情广告一波,<a href="http://dada.dimeratech.com" target="_blank" rel="noopener">下载链接</a>)的后台性能。目前哒哒相机APP只用了一台阿里云ECS(1核CPU、2G内存~~). 为了开发测试, 又买了一台用作测试服务器(1核CPU、1G内存). 后台环境为ubuntu14.04、nginx 1.4、mysql 5.6 以及php5.6. 用ab分别在正式服务器和测试服务器对同一个php文件进行读取，发现在同等压力下测试服务器的速度就是要比正式服务器高。这可就郁闷死我了，你说一样的配置，正式服务器还比测试服务器多了一倍内存，为毛并发还比不上测试服务器？这一整天就耗在这个问题上了。 刚开始我以为是PHP配置的问题，对比了两台服务器的PHP配置项，关于cache以及memory的都一样啊，为了排除是否是PHP的原因，我将测试PHP文件换为了一张4KB的图片，继续AB： 这是正式服务器100并发结果，如下： <img src="https://ayonel.me/wp-content/uploads/2016/07/ab-300x147.jpg" alt="正式服务器AB"> 这是测试服务器100并发结果，如下： <img src="https://ayonel.me/wp-content/uploads/2016/07/abtest-300x144.jpg" alt="abtest"> 可以看到测试服务器响应速度还是要明显高于正式服务器（多次换文件测试，速度大概高1/3），这就排除了是PHP的问题；那就只有nginx了。又反复查看了两台nginx的配置文件，也是一样，期间还做了很多乱七八糟的测试，还是没能找出原因。 这时我突然意识到会不会是硬件的问题，两台服务器都是阿里云，但是买的时候先买了正式服务器，最近才买的这个测试服务器。虽然买的时候都选的同样的配置，但是阿里云屏蔽了很多硬件细节的东西，只告诉你CPU要几核，内存要多大。。。</p>
+<ol>
+<li>先测两者的硬盘读写速率，我用的是hdpram，需要先安装. 正式服务器为： &gt;hdparm -tT /dev/xvda /dev/xvda: Timing cached reads: 15612 MB in 1.99 seconds = <strong>7845.40</strong> MB/sec Timing buffered disk reads: 238 MB in 3.02 seconds = <strong>78.92</strong> MB/sec 测试服务器为： /dev/xvda: Timing cached reads: 17848 MB in 2.00 seconds = <strong>8932.35</strong> MB/sec Timing buffered disk reads: 240 MB in 3.00 seconds = <strong>79.90</strong> MB/sec 以上结果测试了多遍，均显示测试服务器磁盘的读速率要比正式服务器磁盘高出14%，两者的写差不多。到这我还是不太相信两台服务器并发量的差别完全是由磁盘导致的。</li>
+<li>我又查看了两者的CPU 信息，命令: cat /proc/cpuinfo 正式服务器结果为： processor : 0 vendor_id : GenuineIntel cpu family : 6 model : 45 model name : <strong>Intel(R) Xeon(R) CPU E5-2630 0 @ 2.30GHz(型号)</strong> stepping : 7 microcode : 0x70d cpu MHz : <strong>2300.102（频率）</strong> cache size : <strong>15360 KB(缓存大小)</strong> physical id : 0 siblings : 1 core id : 0 cpu cores : 1 apicid : 0 initial apicid : 0 fpu : yes fpu_exception : yes cpuid level : 13 wp : yes flags : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl pni ssse3 cx16 sse4_1 sse4_2 popcnt aes hypervisor lahf_lm bogomips : 4600.20 clflush size : 64 cache_alignment : 64 address sizes : 46 bits physical, 48 bits virtual power management: 测试服务器结果为： processor : 0 vendor_id : GenuineIntel cpu family : 6 model : 62 model name : <strong>Intel(R) Xeon(R) CPU E5-2650 v2 @ 2.60GHz（CPU型号）</strong> stepping : 4 microcode : 0x428 cpu MHz : <strong>2593.838（频率）</strong> cache size : <strong>20480 KB（缓存大小）</strong> physical id : 0 siblings : 1 core id : 0 cpu cores : 1 apicid : 0 initial apicid : 0 fpu : yes fpu_exception : yes cpuid level : 13 wp : yes flags : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl pni ssse3 cx16 sse4_1 sse4_2 popcnt aes hypervisor lahf_lm bogomips : 5187.67 clflush size : 64 cache_alignment : 64 address sizes : 46 bits physical, 48 bits virtual power management: 可以看出测试服务器CPU为2.6GHz，要比正式服务的2.3GHz要高不少，另外CPU缓存也高出了1/3.到这，我基本确定了，不是PHP的问题，不是nginx的问题，是阿里云不同时间段买的ECS底层配置根本不一样，虽然用户购买的时候都选的同样的核心数，多样大的磁盘，但是它的硬件已经升级了（自来水一波：阿里云还是相当不错的）。 一天的时间就耗费在这儿了，不过挺开森~~~特此MARK</li>
+</ol>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2016/05/07/begin-structure/">
+        <span class="nav-arrow">← </span>
+        
+          架构之路----始于足下
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2016/08/04/python-spider/">
+        
+          python小爬虫---爬取网名及头像
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="nav">none</ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2016/07/26/ecs-test/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "yanm1ng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "苦逼的一天：运维真辛苦",
+        owner: "yanm1ng",
+        repo: "yanm1ng.github.io",
+        oauth: {
+          client_id: "0f87e490e00ee3fd87ef",
+          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://yoursite.com/2016/07/26/ecs-test/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      寻找变位词 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>寻找变位词</h2>
+  <p class="post-date">2016-12-27</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p><strong>题目描述：</strong> 如果两个字符串中的字符一样，出现次数也一样，只是出现的顺序的顺序不一样，则认为这两个字符串是兄弟字符串，或称变位词。例如”bad”和”adb”即为兄弟字符串。现提供一个字符串，请问如何在字典中迅速找到它的兄弟字符串。例如待查找的字符串是”apple”,字典是{“appl”,”paal”,”aplep”,”bb”,”leapp”,”hello”}，则输出的单词应为：”aplep”, “leapp”。 <strong>题目描述：</strong>《编程之法》、《编程珠玑》 原理比较简单，但是要完整地实现起来，需要很多基础的小算法，如排序，搜索等。应该，用这个题顺便来练习一下基本算法，还是挺有意义的。 <strong>解题思路：</strong>首先用快排对整个字典排序，排序的比较标准是每个单词内部先排好序之后的签名，比如”apple”—&gt;”aelpp”,”dddap”—&gt;”adddp”;再用排序之后的字典二分搜索目标单词，找到签名一样的单词，则分别向上，向下找到同样签名的单词，并输出； <strong>代码：</strong> <code>// // Created by ayonel on 2016/12/27. // /** * 如果两个字符串中的字符一样，出现次数也一样，只是出现的顺序的顺序不一样，则认为这两个字符串是兄弟字符串。 * 例如&quot;bad&quot;和&quot;adb&quot;即为兄弟字符串。现提供一个字符串，请问如何在字典中迅速找到它的兄弟字符串 * * 例如待查找的字符串是&quot;apple&quot;,字典是{&quot;appl&quot;,&quot;paal&quot;,&quot;aplep&quot;,&quot;bb&quot;,&quot;leapp&quot;,&quot;hello&quot;} * 则输出的单词应为：&quot;aplep&quot;, &quot;leapp&quot; * * 首先用快排对整个字典排序，排序的比较标准是每个单词内部先排好序之后的签名，比如&quot;apple&quot;---&gt;&quot;aelpp&quot;,&quot;dddap&quot;---&gt;&quot;adddp&quot;; * 再用排序之后的字典二分搜索目标单词，找到签名一样的单词，则分别向上，向下找同样签名的单词，并输出； * */ #include #include #define MAX_LEN 20 // 假定每个单词的最大字符数是20 #define WORD_COUNT 6 char set[][WORD_COUNT] = {&quot;appl&quot;,&quot;paal&quot;,&quot;aplep&quot;,&quot;bb&quot;,&quot;leapp&quot;,&quot;hello&quot;}; // 通过对单词插入排序，获取签名，不要直接传入原数组中的单词，应该传入单词的副本，反正覆盖原数组 char* sign(char *result) { int j = 0; int i = 1; char tmp = &#39; &#39;; //插入排序 while (result[i] != &#39;\0&#39;) { tmp = result[i]; for(j = i; j &gt; 0 &amp;&amp; result[j-1] &gt; tmp; j--) { result[j] = result[j-1]; } result[j] = tmp; i++; } return result; } //比较两个单词的签名大小 int compare_by_sign(char *a, char *b) { char sort_a[MAX_LEN]; char sort_b[MAX_LEN]; strcpy(sort_a, a); strcpy(sort_b, b); return strcmp(sign(sort_a), sign(sort_b)); } //比较两个单词大小 int compare(char *a, char *b) { return strcmp(a, b); } //交换原数组中下标为i和j的单词位置 void swap(int i, int j){ if (i == j) return; char tmp[MAX_LEN]; strcpy(tmp, set[i]); strcpy(set[i], set[j]); strcpy(set[j], tmp); } // 对原数组按照签名大小，进行快排 void qsort(int l, int u) { if (l &gt; u) return; int m = l; for(int i = l+1; i &lt;= u; i++) { if(compare_by_sign(set[i], set[l]) &lt; 0){ swap(i,++m); } } swap(m,l); qsort(l, m-1); qsort(m+1, u); } //在排序好的数组中二分查找签名相同的单词，并输出 void bsearch(int l, int u, char *word_sign, int *is_found) { int mid = (u - l) / 2; if (l &gt; u) { return; } char mid_sign[MAX_LEN]; strcpy(mid_sign, set[mid]); sign(mid_sign); int com_result = compare(mid_sign, word_sign); if (com_result &gt; 0) bsearch(l, mid-1, word_sign, is_found); if (com_result &lt; 0) bsearch(mid+1, u, word_sign, is_found); if (com_result == 0){ //找到了，开始向下以及向上寻找相同签名的词 int flag = mid; printf(&quot;found brother word:\n%s\n&quot;,set[mid]); *is_found = 1; mid--; flag++; //向上找 while(mid &gt; 0){ if(compare(sign(set[mid]), word_sign) == 0) printf(&quot;%s\n&quot;,set[mid]); else break; mid--; } //向下找 while(flag &lt; WORD_COUNT) { if(compare(sign(set[flag]), word_sign) == 0) printf(&quot;%s\n&quot;,set[flag]); else break; flag++; } } } int main() { qsort(0, WORD_COUNT-1); //对原数组排序 char des[] = &quot;apple&quot;; //待查找单词 char *word_sign; word_sign = sign(des); //待查找单词的签名 printf(&quot;sign is: %s\n&quot;, word_sign); int is_found = 0; //标记是否找到 bsearch(0, WORD_COUNT, sign(des), &amp;is_found); //二分查找 if (is_found == 0) { //未找到 printf(&quot;%s\n&quot;, &quot;can not found brother word!!&quot;); } }</code> 输出为： <code>sign is: aelpp found brother word: leapp aelpp</code></p>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2016/12/21/largest-subvector/">
+        <span class="nav-arrow">← </span>
+        
+          计算最大连续子向量
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2017/01/05/compile-openjdk/">
+        
+          ubuntu14.04 编译openjdk7
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="nav">none</ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2016/12/27/brother-word/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "yanm1ng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "寻找变位词",
+        owner: "yanm1ng",
+        repo: "yanm1ng.github.io",
+        oauth: {
+          client_id: "0f87e490e00ee3fd87ef",
+          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://yoursite.com/2016/12/27/brother-word/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>

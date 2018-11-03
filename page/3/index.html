@@ -10,7 +10,7 @@
   
   <title>
     
-      About | ayonel的博客
+      ayonel的博客
     
   </title>
   <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -65,7 +65,7 @@
       
         <li class="list-item">
           
-            <a href="/" class="item-link">主页</a>
+            <a href="/" class="item-link active">主页</a>
           
         </li>
       
@@ -104,7 +104,7 @@
         
           <li class="menu-item">
             
-              <a href="/" class="menu-link">主页</a>
+              <a href="/" class="menu-link mobile-active">主页</a>
             
           </li>
         
@@ -137,45 +137,93 @@
   </div>
 </header>
 
-    <div id="about-banner" style="background-image: url(http://file.muyutech.com/about.jpg)"></div>
-<div class="author">
-  <div class="head">
-    <img src="https://raw.githubusercontent.com/ayonel/ayonel.github.io/master/css/images/avatar.jpg">
-  </div>
-  <h3>ayonel</h3>
+    <main class="app-body">
   
-    <p class="description">Life is always sweet~</p>
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/08/19/changes-for-tp5/">对thinkphp5.0 rc4的一些改动</a>
+      </h2>
+      <p class="article-date">August 19, 2016</p>
+      
+      <div class="article-summary">
+        
+          最近开发一直用的是thinkphp5.0 rc4，个人感觉相较于tp3.x, tp5.0的进步是巨大的。 开发使用框架时，有时候需要根据自己的业务逻辑来框架源码做一些小改动，本文记录我在开发过程中对tp5.0 rc4做出修改的地方，如果更新框架，就需要对这些地方重新修改，特此MARK! 1. ...
+        
+      </div>
+      <a class="more" href="/2016/08/19/changes-for-tp5/">Read more</a>
+    </article>
   
-  <section class="share-icons">
-    
-    
-    
-      <a class="icon-github" href="https://github.com/ayonel" target="_blank">
-        <span class="fa-stack fa-lg">
-          <i class="fa fa-circle fa-stack-2x"></i>
-          <i class="fa fa-github fa-stack-1x fa-inverse"></i>
-        </span>
-      </a>
-    
-    
-    
-    
-  </section>
-</div>
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/08/12/weka-naivebayes/">用weka进行多项式朴素贝叶斯增量学习</a>
+      </h2>
+      <p class="article-date">August 12, 2016</p>
+      
+      <div class="article-summary">
+        
+          有时候我们进行贝叶斯分类时，由于数据量太大导致内存溢出或者对模型的训练有着特殊要求(比如用第一个月的数据预测第二个月，再将第二个月的数据加入已经训练好的模型，去预测第三个月…)，这时普通的贝叶斯分类不行了。我们需要使用贝叶斯来进行增量学习（incremental learning）, wek ...
+        
+      </div>
+      <a class="more" href="/2016/08/12/weka-naivebayes/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/08/04/python-spider/">python小爬虫---爬取网名及头像</a>
+      </h2>
+      <p class="article-date">August 4, 2016</p>
+      
+      <div class="article-summary">
+        
+          一款产品发布，其初始用户量很小，这时就需要伪造一批用户来增加平台的用户量，搭起初步的用户生态系统。那么伪造用户时，我们必然需要网名以及头像（也有可能需要签名）等等信息。所以前些日子写了个小爬虫来爬取一批（30000+）网名及头像。 对于头像的爬取，我选择的站点是“我要个性网”（http:// ...
+        
+      </div>
+      <a class="more" href="/2016/08/04/python-spider/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/07/26/ecs-test/">苦逼的一天：运维真辛苦</a>
+      </h2>
+      <p class="article-date">July 26, 2016</p>
+      
+      <div class="article-summary">
+        
+          今天打算好好测一下我们的哒哒相机APP (友情广告一波,下载链接)的后台性能。目前哒哒相机APP只用了一台阿里云ECS(1核CPU、2G内存~~). 为了开发测试, 又买了一台用作测试服务器(1核CPU、1G内存). 后台环境为ubuntu14.04、nginx 1.4、mysql 5.6  ...
+        
+      </div>
+      <a class="more" href="/2016/07/26/ecs-test/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/05/07/begin-structure/">架构之路----始于足下</a>
+      </h2>
+      <p class="article-date">May 7, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;前些日子，AWS EC2做活动，注册即可免费试用一年，这等好事怎能错过，遂赶紧领了一台，可以上一些和谐的网站，顺便当做我个人的博客。因此这算是我正式写的第一篇博客吧。  
 
-<script>
-  (function () {
-    $('.header').removeClass('fixed-header')
-    var windowH = $(window).height();
-    var author = $('.author')
-    var bodyH = author.offset().top + author[0].offsetHeight + 71;
-    if (bodyH < windowH) {
-      author.css({
-        'margin-bottom': windowH - bodyH
-      })
-    }
-  })();
-</script>
+&#160; &#160; &#160; &#160;大概在三个 ...
+        
+      </div>
+      <a class="more" href="/2016/05/07/begin-structure/">Read more</a>
+    </article>
+  
+
+  
+    <div class="guide-pager">
+  
+    <a href="/page/2/"><span class="page-arrow">← </span>Prev</a>
+  
+  
+    <a class="unvisible" href="/">Next <span class="page-arrow">→</span></a>
+  
+</div>
+  
+</main>
+
 
     <div class="scroll-top">
   <span class="arrow-icon"></span>

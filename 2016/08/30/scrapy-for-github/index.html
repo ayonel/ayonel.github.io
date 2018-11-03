@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      scrapy爬取GitHub API教程 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>scrapy爬取GitHub API教程</h2>
+  <p class="post-date">2016-08-30</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p><strong>GitHub API</strong>其实是一座宝藏，它拥有着海量项目以及开发者的各类信息，可以作为社交编程以及经验软件工程课题的数据载体。 本次教程较大家如何使用scrapy来爬取GitHub API，抓取我们所需要的特定信息。GitHub API 是GitHub基于<strong>OAuth2</strong>协议开放出来的数据获取接口，我们能够在GitHub API上获取各类信息，比如一个项目的<em>commit,issue,pull request</em>;一个用户的粉丝，关注，提交活动，评论等等。GitHub API 有着详细的<a href="https://api.github.com" target="_blank" rel="noopener">官方文档教程</a>,上面各类数据的获取接口地址，以及一些过滤参数等。本教程将以爬取<a href="http://github.com/rails/rails" target="_blank" rel="noopener">rails</a>的issue信息为例，教大家如何使用<strong><em>scrapy</em></strong>来爬取GitHub API。 再开始爬取之前，我们需要进行一些准备工作，由于<strong>GitHub API</strong>采用<strong>OAuth2</strong>认证，需要我们提供认证token。当然不提供token可以进行爬取，但是爬取速率会大大降低。 <strong><em>For requests using Basic Authentication or OAuth, you can make up to 5,000 requests per hour. For unauthenticated requests, the rate limit allows you to make up to 60 requests per hour. Unauthenticated requests are associated with your IP address, and not the user making requests. Note that the Search API has custom rate limit rules.</em></strong> 上面显示如果我们提供token可以每小时进行<strong>5000</strong>次请求，对于非认证(不提供token)一小时只能提供<strong>60</strong>次的请求，超出请求速率限制后，会返回状态码<strong>403 forbidden</strong>。有人会问，即使认证后<strong>5000次/小时</strong>的速率也有些慢啊，如果要更快地进行爬取，那就多注册几个GitHub账号，同时利用多个账号的token进行爬取。GitHub的爬取限制针对的是每个用户，而不是<strong>IP</strong>，也就是同一台机器，只要你保证每个账号每小时进行小于5000次的爬取，也是完全没有问题的。 接下来我们来展示如何获取自己的token，其实全名为personal access token，每个账号可以拥有多个token，所以不小心哪一天忘了的话，重新生成一个新的即可。 首先我们需要登录自己的GitHub账号。然后在设置里面有一个<em>personal access token</em>选项： <img src="https://ayonel.me/wp-content/uploads/2016/08/QQ截图20160830092436-300x197.png" alt="QQ截图20160830092436"> 点进去，再点击<strong>Generate new token</strong> . 选择你想让你的token拥有的权限，一般默认全选即可。点击绿色的Generate token按钮。 <img src="https://ayonel.me/wp-content/uploads/2016/08/QQ截图20160830092627-300x104.png" alt="QQ截图20160830092627"> 这样就生成我们的token了。注意一定要在这时候把token保存下来，这将是你在GitHub上最后一次看见你的token。一旦刷新，token就会隐藏掉。这时候只有生成新的token了。 <img src="https://ayonel.me/wp-content/uploads/2016/08/QQ截图20160830092306-300x51.png" alt="QQ截图20160830092306"> 好了，有了预先的准备工作，接下来就可以编写爬虫了。这次爬虫采用scrapy，关于scrapy相关的知识就不再赘述了，网上有很多教程。 简单说一下爬取思路。 GitHub API 返回的数据都是json，这极大地方便了数据的解析。我们本次的任务是爬取rails项目的所有issue,先来大概看一下返回的issue是什么样子。由于内容太长，我就直接放链接，大家可以点击去看。 <a href="https://api.github.com/repos/rails/rails/issues" target="_blank" rel="noopener">https://api.github.com/repos/rails/rails/issues</a> 我们可以看到返回的页面是一个json数组，每个元素其实就是一个issue.而每个issue里面又有诸多信息，比如number,title,body等等。我们本次任务就爬取rails所有issue的信息number，提交者(user.login)，body以及title. 注意，<a href="https://api.github.com/repos/rails/rails/issues" target="_blank" rel="noopener">https://api.github.com/repos/rails/rails/issues</a>返回的是按时间倒叙排列的issue,并且每页默认返回30条，我们需要在url后面接上一些参数，来爬取指定的页。我们将url接上参数构造成如下的样子： <strong><a href="https://api.github.com/repos/rails/rails/issues?per_page=99&amp;page=num" target="_blank" rel="noopener">https://api.github.com/repos/rails/rails/issues?per_page=99&amp;page=num</a></strong> 其中num代表页数，我们需要从1开始自增。per_page代表每页返回的元素个数,GitHub最大只能制定到99。 所以我们的爬虫，应该是从1开始不停地自增num，直到返回的json数组元素个数不足99，就说明爬取完了。另外，由于GitHub API 爬取速率的限制，我事先准备了10个不同账号的token,对于每次请求，重新自定义请求header,带上不同的token. 下文是源代码： <code># -*- coding: utf-8 -*- __author__ = &#39;ayonel&#39; import itertools import json import os import scrapy from scrapy import Request class IssueSpider(scrapy.spiders.Spider): name = &quot;issue&quot; #爬虫名称 allowed_domains = [&quot;github.com&quot;] #制定爬取域名 num = 1 # 页数，默认从第一页开始 handle_httpstatus_list = [404, 403, 401] #如果返回这个列表中的状态码，爬虫也不会终止 output_file = open(&#39;issue.txt&#39;, &quot;a&quot;) #输出文件 #token列表，隐去部分 token_list = [ &#39;293a06ac6ed5a746f7314be5a25f3d**********&#39;, &#39;66de084042a7d3311544c656ad9273**********&#39;, &#39;a513f61368e16c2da229e38e139a8e**********&#39;, &#39;9055150c8fd031468af71cbb4e12c5**********&#39;, &#39;ba119dc83af804327fa9dad8e07718**********&#39;, &#39;b93e6996a4d76057d16e5e45788fbf**********&#39;, &#39;c9c13e5c14d6876c76919520c9b05d**********&#39;, &#39;3e41cbfc0c8878aec935fba68a0d3c**********&#39;, &#39;402ff55399ca08ca7c886a2031f49f**********&#39;, &#39;7cb6e20a24000968983b79b5de705c**********&#39;, ] token_iter = itertools.cycle(token_list) #生成循环迭代器，迭代到最后一个token后，会重新开始迭代 def __init__(self): #初始化 scrapy.spiders.Spider.__init__(self) def __del__(self): #爬虫结束时，关闭文件 self.output_file.close() def start_requests(self): start_urls = [] #初始爬取链接列表 url = &quot;https://api.github.com/repos/rails/rails/issues?per_page=99&amp;page=&quot;+str(self.num) #第一条爬取url #添加一个爬取请求 start_urls.append(scrapy.FormRequest(url, headers={ &#39;User-Agent&#39;: &#39;Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0&#39;, &#39;Accept&#39;: &#39;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&#39;, &#39;Accept-Language&#39;: &#39;en&#39;, &#39;Authorization&#39;: &#39;token &#39; + self.token_iter.next(),#这个字段为添加token字段 }, callback=self.parse)) return start_urls def yield_request(self): #定义一个生成请求函数 url = &quot;https://api.github.com/repos/rails/rails/issues?per_page=99&amp;page=&quot;+str(self.num) #生成url #返回请求 return Request(url,headers={ &#39;User-Agent&#39;: &#39;Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0&#39;, &#39;Accept&#39;: &#39;text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&#39;, &#39;Accept-Language&#39;: &#39;en&#39;, &#39;Authorization&#39;: &#39;token &#39; + self.token_iter.next(), },callback=self.parse) #解析函数 def parse(self, response): if response.status in self.handle_httpstatus_list:#如果遇见handle_httpstatus_list中出现的状态码 self.num += 1 #num自增，相当于直接跳过，可以输出当前url到log文件 yield self.yield_request() #产生新的请求 return json_data = json.loads(response.body_as_unicode()) #获取json length = len(json_data) #获取json长度 if length == 99: self.num = self.num + 1 for issue in json_data: data = {} data[&#39;number&#39;] = issue[&#39;number&#39;] data[&#39;owner&#39;] = issue[&#39;user&#39;][&#39;login&#39;] data[&#39;title&#39;] = issue[&#39;title&#39;] data[&#39;body&#39;] = issue[&#39;body&#39;] self.output_file.write(json.dumps(data)+&#39;\n&#39;) #输出每一行，格式也为json self.output_file.flush() yield self.yield_request() #产生新的请求 elif length &lt; 99: #意味着爬取到最后一页 for issue in json_data: data = {} data[&#39;number&#39;] = issue[&#39;number&#39;] data[&#39;owner&#39;] = issue[&#39;user&#39;][&#39;login&#39;] data[&#39;title&#39;] = issue[&#39;title&#39;] data[&#39;body&#39;] = issue[&#39;body&#39;] self.output_file.write(json.dumps(data)+&#39;\n&#39;) self.output_file.flush()</code></p>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2016/08/26/mixed-effect-logistic-regression/">
+        <span class="nav-arrow">← </span>
+        
+          使用R语言进行多元混合效应逻辑回归
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2016/08/31/async-staff/">
+        
+          同步|异步|阻塞|非阻塞
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="nav">none</ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2016/08/30/scrapy-for-github/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "yanm1ng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "scrapy爬取GitHub API教程",
+        owner: "yanm1ng",
+        repo: "yanm1ng.github.io",
+        oauth: {
+          client_id: "0f87e490e00ee3fd87ef",
+          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://yoursite.com/2016/08/30/scrapy-for-github/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      同步|异步|阻塞|非阻塞 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>同步|异步|阻塞|非阻塞</h2>
+  <p class="post-date">2016-08-31</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p>同步异步，阻塞非阻塞这一直是一个很难理解的概念。以前也看过一些资料，但现在回想起来还是一片空白。所以整理一篇文章来记录下，以期备忘。 网上看到一句话，还是挺形象的： “阻塞和非阻塞是等待方式的区别，比如你去取钱，等待过程中，你一直在那边等，什么事情都做不了；而非阻塞是先给一个结果“可能要花点时间，你去抽根烟吧”。而同步和异步是通知方式的差别，同步就是，你抽烟过程中，还不断的问“钱出来了吗？钱出来了么？”，是你主动去问的。而异步就是，你取钱的时候，柜员给了你一张小纸条说“钱好了叫你”，注意，是柜员通知你。综述，阻塞是同步的，异步一定是非阻塞的。” 知乎： 不熟悉操作系统的开发人员们只知道有什么用什么，也没去多想怎么优化多线程。现在多线程优化出来了，叫协程，调度器有的有（比如go的用户态调度器）有的没有（比如yield），取决于怎么用。其内存开销仍然比异步回调要大（一个协程一个栈，而异步回调的话一个event loop一共就一个栈），但是现在内存也是便宜了，不算是瓶颈。人最关注的是“千万不能堵着（block）”，要千方百计让CPU转起来，这样concurrency才能上去。而到处乱开协程（因为比线程便宜啊）就能达到这个效果，开十万个协程内存也没爆炸，跑上24个就能把CPU打满。所以异步回调的这个优势已经没了。 作者：Tim Shen 链接：<a href="https://www.zhihu.com/question/32218874/answer/56255707" target="_blank" rel="noopener">https://www.zhihu.com/question/32218874/answer/56255707</a> 来源：知乎 作者：陈果果果果果栋 链接：<a href="https://www.zhihu.com/question/32218874/answer/55469714" target="_blank" rel="noopener">https://www.zhihu.com/question/32218874/answer/55469714</a> 来源：知乎 著作权归作者所有，转载请联系作者获得授权。 笔者是一个菜鸟，以下全部是乱喷的…. 哈哈，首先我其实不觉得协程是趋势。但是协程真的改进了IO操作的用户体验。 协程是啥 首先我们得知道协程是啥？协程其实可以认为是比线程更小的执行单元。为啥说他是一个执行单元，因为他自带CPU上下文。这样只要在合适的时机，我们可以把一个协程 切换到 另一个协程。只要这个过程中保存或恢复 CPU上下文那么程序还是可以运行的。 协程和线程差异 那么这个过程看起来比线程差不多哇。其实不然 线程切换从系统层面远不止 保存和恢复 CPU上下文这么简单。操作系统为了程序运行的高效性每个线程都有自己缓存Cache等等数据，操作系统还会帮你做这些数据的恢复操作。所以线程的切换非常耗性能。但是协程的切换只是单纯的操作CPU的上下文，所以一秒钟切换个上百万次系统都抗的住。 协程的问题 但是协程有一个问题，就是系统并不感知，所以操作系统不会帮你做切换。那么谁来帮你做切换？让需要执行的协程更多的获得CPU时间才是问题的关键。 笔者知道协程的实现相关的 目前的协程框架一般都是设计成 1:N 模式。所谓 1:N 就是一个线程作为一个容器里面放置多个协程。那么谁来适时的切换这些协程？答案是有协程自己主动让出CPU，也就是每个协程池里面有一个调度器，这个调度器是被动调度的。意思就是他不会主动调度。而且当一个协程发现自己执行不下去了(比如异步等待网络的数据回来，但是当前还没有数据到)，这个时候就可以由这个协程通知调度器，这个时候执行到调度器的代码，调度器根据事先设计好的调度算法找到当前最需要CPU的协程。切换这个协程的CPU上下文把CPU的运行权交个这个协程，直到这个协程出现执行不下去需要等等的情况，或者它调用主动让出CPU的API之类，触发下一次调度。对的没错就是类似于 领导人模式 那么这个实现有没有问题？ 其实是有问题的，假设这个线程中有一个协程是CPU密集型的他没有IO操作，也就是自己不会主动触发调度器调度的过程，那么就会出现其他协程得不到执行的情况，所以这种情况下需要程序员自己避免。这是一个问题，假设业务开发的人员并不懂这个原理的话就可能会出现问题。 最后讲讲协程的好处 在IO密集型的程序中由于IO操作远远小于CPU的操作，所以往往需要CPU去等IO操作。同步IO下系统需要切换线程，让操作系统可以再IO过程中执行其他的东西。这样虽然代码是符合人类的思维习惯但是由于大量的线程切换带来了大量的性能的浪费，尤其是IO密集型的程序。 所以人们发明了异步IO。就是当数据到达的时候触发我的回调。来减少线程切换带来性能损失。但是这样的坏处也是很大的，主要的坏处就是操作被 “分片” 了，代码写的不是 “一气呵成” 这种。 而是每次来段数据就要判断 数据够不够处理哇，够处理就处理吧，不够处理就在等等吧。这样代码的可读性很低，其实也不符合人类的习惯。 但是协程可以很好解决这个问题。比如 把一个IO操作 写成一个协程。当触发IO操作的时候就自动让出CPU给其他协程。要知道协程的切换很轻的。协程通过这种对异步IO的封装 既保留了性能也保证了代码的 容易编写和可读性。在高IO密集型的程序下很好。但是高CPU密集型的程序下没啥好处。 扯完 碎觉…………… 手酸 —————未完待续——————————— 作者：fleuria 链接：<a href="https://www.zhihu.com/question/32218874/answer/55151946" target="_blank" rel="noopener">https://www.zhihu.com/question/32218874/answer/55151946</a> 来源：知乎 著作权归作者所有，转载请联系作者获得授权。 有时候总觉得 gevent 这类协程库是被 python 的 GIL 逼出来的，如果原生线程支持足够好，协程的必要性可能并不一定很大。 协程最早来自高性能计算领域的成功案例，协作式调度相比抢占式调度而言，可以在牺牲公平性时换取吞吐。 在互联网行业面临 C10K 问题时，线程方案不足以扛住大量的并发，这时的解决方案是 epoll() 式的事件循环，nginx 在这波潮流中顺利换掉 apache 上位。同一时间的开发社区为 nginx 的成绩感到震撼，出现了很多利用事件循环的应用框架，如 tornado / nodejs，也确实能够跑出更高的分数。而且 python/ruby 社区受 GIL 之累，几乎没有并发支持，这时事件循环是一种并发的解放。 然而事件循环的异步控制流对开发者并不友好。业务代码中随处可见的 mysql / memcache 调用，迅速地膨胀成一坨 callback hell。这时社区发现了协程，在用户态实现上下文切换的工具，把 epoll() 事件循环隐藏起来，而且成本不高：用每个协程一个用户态的栈，代替手工的状态管理。似乎同时得到了事件循环和线程同步控制流的好处，既得到了 epoll() 的高性能，又易于开发。甚至通过 monkey patch，旧的同步代码可以几乎无缝地得到异步的高性能，真是太完美了。 然而，跑了一圈回来，协程相比原生线程又有多少差别呢。 1. 用户态栈，更轻量地创建“轻量线程”； 2. 协作式的用户态调度器，更少线程上下文切换； 3. 重新实现 mutex 等同步原语； 协程的创建成本更小，但是创建成本可以被线程池完全绕开，而且线程池更 fine grained，这时相比线程池的优势更多在于开发模型的省力，而不在性能。此外，”轻量线程” 这个名字有一定误导的成分，协程作为用户态线程，需要的上下文信息与系统线程几乎无异。如果说阻碍系统线程 scale 的要素是内存（一个系统线程的栈几乎有 10mb 虚拟内存，线程的数量受虚拟地址空间限制），那么用户态线程的栈如果使用得不节制，也需要同量的内存。 协作式调度相比抢占式调度的优势在于上下文切换开销更少（但是差异是否显著？）、更容易把缓存跑热，但是也放弃了原生线程的优先级概念，如果存在一个较长时间的计算任务，将影响到 IO 任务的响应延时。而内核调度器总是优先 IO 任务，使之尽快得到响应。此外，单线程的协程方案并不能从根本上避免阻塞，比如文件操作、内存缺页，这都属于影响到延时的因素。 事件循环方案被认识的一个优势是可以避免上锁，而锁是万恶之源。协程方案基于事件循环方案，似乎继承了不用上锁的优势。然而并不是。上下文切换的边界之外，并不能保证临界区。该上锁的地方仍需要上锁。 差异存在，但该维护的信息并没有更少。如果运行时对系统线程的支持比较好，业务系统使用协程的综合效益并不一定相比线程池更好。我们业内通常意义上的”高并发”，往往只是要达到几k qps，然而 qps 是衡量吞吐而非并发的指标（并发1k意味着同时响应1k个连接，而 qps 衡量一秒响应多少请求，这可以是排队处理，并不一定”并发”），靠线程池并非做不到。但对 python 这类 GIL 运行时而言，这却拥有显著提升性能的优势了，只是这时瓶颈在 GIL，而不在线程。 至于并发量导向的业务，一般也是状态上下文较少的业务，比如推送，这时 callback hell 基本可控，使用协程相比事件循环依然更容易编程，但效益并不显著。 最后尝试总结一下个人的想法： 协程不是趋势，它是一个在历史中被挖掘出来的、对现有问题的一个有用的补充。 适用的场景： 高性能计算，牺牲公平性换取吞吐； 面向 IO Bound 任务，减少 IO 等待上的闲置，这其实和高性能计算领域内的优势是一致的； Generator 式的流式计算； 消除 Callback Hell，使用同步模型降低开发成本的同时保留更灵活控制流的好处，比如同时发三个请求；这时节约地使用栈，可以充分地发挥 “轻量” 的优势； 但并不是万灵丹： 如果栈使用得不节制，消耗的内存量和系统线程无异，甚至内存管理还不如系统线程（系统线程可以动态地调整虚拟内存，用户线程的 Segmented Stack 方案存在严重的抖动问题，Continous Stack 方案管理不当也会抖动，为了避免抖动则成了空间换时间，而内核在这方面做了多少 heuristic 呢）； IO Bound 任务可以通过调线程池大小在一定程度上缓解，目标是把 CPU 跑满即可，这点线程池的表现可能不完美，但在业务逻辑这个领域是及格的； 此外，一般的 python/ruby 任务并不是严格的 IO Bound，比如 ORM 的对象创建、模版渲染、GC 甚至解释器本身，都是 CPU 大户；单个请求扣去 redis 请求和数据库请求的时间，其它时间是否仍不少呢？ CPU 上长时间的计算，导致用户线程的调度变差，不能更快地响应，单个请求的平均时间反而可能更长（诚然并发可能更高）；然而这在 python 这类 GIL 语言来看并不算劣势，甚至比 GIL 的调度更好，至少 gevent 可以知道各 IO 任务的优先级，而 GIL 的调度是事实上的 FIFO； <a href="http://my.oschina.net/dclink/blog/287198" target="_blank" rel="noopener">http://my.oschina.net/dclink/blog/287198</a> <a href="http://chen498402552-163-com.iteye.com/blog/1997633" target="_blank" rel="noopener">http://chen498402552-163-com.iteye.com/blog/1997633</a> <a href="http://blog.mixu.net/2011/02/01/understanding-the-node-js-event-loop/" target="_blank" rel="noopener">http://blog.mixu.net/2011/02/01/understanding-the-node-js-event-loop/</a> <a href="http://www.infoq.com/cn/articles/generator-and-asynchronous-programming/" target="_blank" rel="noopener">http://www.infoq.com/cn/articles/generator-and-asynchronous-programming/</a></p>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2016/08/30/scrapy-for-github/">
+        <span class="nav-arrow">← </span>
+        
+          scrapy爬取GitHub API教程
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2016/08/31/some-python-code/">
+        
+          一些有意思的python代码片段
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="nav">none</ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2016/08/31/async-staff/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "yanm1ng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "同步|异步|阻塞|非阻塞",
+        owner: "yanm1ng",
+        repo: "yanm1ng.github.io",
+        oauth: {
+          client_id: "0f87e490e00ee3fd87ef",
+          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://yoursite.com/2016/08/31/async-staff/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2018 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>
