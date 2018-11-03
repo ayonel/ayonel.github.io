@@ -175,7 +175,9 @@
       
       <div class="article-summary">
         
-          这两天仔细研究了一下SVM的底层数学原理，感觉大学基础数学没好好学，现在看起来真的很吃力啊~~ 整理了几篇关于SVM原理的文章，大家有兴趣可以看看。 1. jasper的SVM入门教程，总共有9篇，作者文笔了得，深入浅出，将很复杂抽象的概念都能讲解的特别清楚，非常值得一看。 2.July、p ...
+          &#160; &#160; &#160; &#160;这两天仔细研究了一下SVM的底层数学原理，感觉大学基础数学没好好学，现在看起来真的很吃力啊~~&#160; &#160; &#160; &#160;整理了几篇关于SVM原理的文章，大家有兴趣可以看看。
+
+jasper的SVM入门教程，总共 ...
         
       </div>
       <a class="more" href="/2017/05/04/svm-principle/">Read more</a>
@@ -189,7 +191,7 @@
       
       <div class="article-summary">
         
-          现在博客正式从aws上迁移到malash的服务器上。嘻嘻，以后再也不用花钱啦~~ 然后malash跟我强行装了“用两句Haskell实现快排”的逼。确实感觉到函数式编程无限的想象力。 Haskell如何写，具体忘了，下面是Python的实现，原理类似。 def sort(arr): if l ...
+          &#160; &#160; &#160; &#160;现在博客正式从aws上迁移到malash的服务器上。嘻嘻，以后再也不用花钱啦~~&#160; &#160; &#160; &#160;然后malash跟我强行装了“用两句Haskell实现快排”的逼。确实感觉到函数式编程无限的想象力。 H ...
         
       </div>
       <a class="more" href="/2017/03/10/function-qsort/">Read more</a>
@@ -203,7 +205,7 @@
       
       <div class="article-summary">
         
-          最近在看周志明的《深入理解Java虚拟机-JVM高级特性与最佳实战》，要学习JVM，最好还是自己先能编译一遍。书中给出了在Mac上编译openjdk7的教程，但距离今天太过久远，书中的方法并不能奏效。只能自己上网一点点来了。 最开始打算是在我的Mac上编译，我的OSX系统是macOS sie ...
+          &#160; &#160; &#160; &#160;最近在看周志明的《深入理解Java虚拟机-JVM高级特性与最佳实战》，要学习JVM，最好还是自己先能编译一遍。书中给出了在Mac上编译openjdk7的教程，但距离今天太过久远，书中的方法并不能奏效。只能自己上网一点点来了。&#160;  ...
         
       </div>
       <a class="more" href="/2017/01/05/compile-openjdk/">Read more</a>
@@ -217,7 +219,8 @@
       
       <div class="article-summary">
         
-          题目描述： 如果两个字符串中的字符一样，出现次数也一样，只是出现的顺序的顺序不一样，则认为这两个字符串是兄弟字符串，或称变位词。例如”bad”和”adb”即为兄弟字符串。现提供一个字符串，请问如何在字典中迅速找到它的兄弟字符串。例如待查找的字符串是”apple”,字典是{“appl”,”pa ...
+          题目描述：
+如果两个字符串中的字符一样，出现次数也一样，只是出现的顺序的顺序不一样，则认为这两个字符串是兄弟字符串，或称变位词。例如”bad”和”adb”即为兄弟字符串。现提供一个字符串，请问如何在字典中迅速找到它的兄弟字符串。例如待查找的字符串是”apple”,字典是{“appl”,”pa ...
         
       </div>
       <a class="more" href="/2016/12/27/brother-word/">Read more</a>
@@ -231,24 +234,10 @@
       
       <div class="article-summary">
         
-          问题描述：输入具有n个浮点数的向量x，输出向量x中任何连续子向量中的最大和。例如： 如果x={1,2,3}，则output=6 如果x={1,-2,3}，则output=3 如果x={31,-41,59,26,-53,58,97,-93,-23,84},则output=187 当所有输入为负 ...
+          问题描述：输入具有n个浮点数的向量x，输出向量x中任何连续子向量中的最大和。例如：如果x={1,2,3}，则output=6如果x={1,-2,3}，则output=3如果x={31,-41,59,26,-53,58,97,-93,-23,84},则output=187当所有输入为负数时，最 ...
         
       </div>
       <a class="more" href="/2016/12/21/largest-subvector/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/12/04/servlet-lifecycle/">servlet生命周期中的一点杂谈-待完善</a>
-      </h2>
-      <p class="article-date">December 4, 2016</p>
-      
-      <div class="article-summary">
-        
-          1）首先，能够获得大家一致认可的是，不论一个servlet保存多长时间，它的生存周期肯定会短于容器的生存期，servlet实例在容器被移除之前被销毁，即所谓的“皮之不存，毛何附焉”； （2）servlet生存期的定义，包括加载、实例化、初始化、处理客户端请求以及如何被移除。这个生存期由jav ...
-        
-      </div>
-      <a class="more" href="/2016/12/04/servlet-lifecycle/">Read more</a>
     </article>
   
     <article class="article-card">
@@ -259,7 +248,8 @@
       
       <div class="article-summary">
         
-          scipy是python下的一个数值计算工具包，sklearn依赖于这个包。当我调用sklearn的CountVectorizer时，提示没有发现包scipy，直接安装又总是失败。 问题就在于 scipy的安装需要依赖很多别的包，在windows这个蛋疼的平台下极有可能安装失败。并且在win ...
+          scipy是python下的一个数值计算工具包，sklearn依赖于这个包。当我调用sklearn的CountVectorizer时，提示没有发现包scipy，直接安装又总是失败。   
+问题就在于 scipy的安装需要依赖很多别的包，在windows这个蛋疼的平台下极有可能安装失败。并且在 ...
         
       </div>
       <a class="more" href="/2016/11/25/windows-install-scipy/">Read more</a>
@@ -267,16 +257,30 @@
   
     <article class="article-card">
       <h2 class="article-head">
-        <a href="/2016/11/24/python-nformation-gain/">python计算信息增益 (information gain)</a>
+        <a href="/2016/11/24/python-information-gain/">python计算信息增益 (information gain)</a>
       </h2>
       <p class="article-date">November 24, 2016</p>
       
       <div class="article-summary">
         
-          在文本分类中有这样一个场景，当我们已经分好词，并构造出词频向量后，这个向量会很大，经常会多达几万维，甚至十几万维。这种规模的模型如果要用SVM等较高级的机器学习进行训练的话，那简直是慢的要死，深度学习就再别谈了。为了较少向量维度，我们可以采用一些方法，比如在词向量中过滤掉词频小于N的词，这个 ...
+          &#160; &#160; &#160; &#160;在文本分类中有这样一个场景，当我们已经分好词，并构造出词频向量后，这个向量会很大，经常会多达几万维，甚至十几万维。这种规模的模型如果要用SVM等较高级的机器学习进行训练的话，那简直是慢的要死，深度学习就再别谈了。为了较少向量维度，我们可以 ...
         
       </div>
-      <a class="more" href="/2016/11/24/python-nformation-gain/">Read more</a>
+      <a class="more" href="/2016/11/24/python-information-gain/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/09/30/meka-multilabel-classifier/">使用meka实现multilabel classifier</a>
+      </h2>
+      <p class="article-date">September 30, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;乍一看题目，使用”meka“实现分类器，是不是笔者打错了啊，应该是weka啊。其实不然，这世上还真有一个叫meka的包，并且他还跟weka算是亲戚关系。只不过，这个meka是一个专门用来解决多标签分类问题的包，并且是基于weka的，可以算 ...
+        
+      </div>
+      <a class="more" href="/2016/09/30/meka-multilabel-classifier/">Read more</a>
     </article>
   
 

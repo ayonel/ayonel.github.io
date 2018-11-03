@@ -141,73 +141,16 @@
   
     <article class="article-card">
       <h2 class="article-head">
-        <a href="/2016/11/21/package-source-node/">为nodejs替换包安装源</a>
-      </h2>
-      <p class="article-date">November 21, 2016</p>
-      
-      <div class="article-summary">
-        
-          最近在看nodejs，感觉它的异步编程思想确实有些不习惯。但好在ES6以后支持async、await特性，会慢慢让代码更加好看。也学了下node中最流行的框架express，以及它的下一代版本叫做koa。给我的感觉就是简练，跟ruby的rails，php中的laravel，还有python的 ...
-        
-      </div>
-      <a class="more" href="/2016/11/21/package-source-node/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/09/30/meka-multilabel-classifier/">使用meka实现multilabel classifier</a>
-      </h2>
-      <p class="article-date">September 30, 2016</p>
-      
-      <div class="article-summary">
-        
-          乍一看题目，使用”meka“实现分类器，是不是笔者打错了啊，应该是weka啊。其实不然，这世上还真有一个叫meka的包，并且他还跟weka算是亲戚关系。只不过，这个meka是一个专门用来解决多标签分类问题的包，并且是基于weka的，可以算作是weka的一个扩展。 那好，什么是多标签分类呢？我 ...
-        
-      </div>
-      <a class="more" href="/2016/09/30/meka-multilabel-classifier/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
         <a href="/2016/09/21/sklearn-naive-bayes/">用sklearn实现多项式朴素贝叶斯增量学习</a>
       </h2>
       <p class="article-date">September 21, 2016</p>
       
       <div class="article-summary">
         
-          以前写过一篇博文是利用weka来实现多项式朴素贝叶斯增量学习。这次利用python中的sklearn学习工具来实现。其实个人感觉像机器学习，数据处理这种活本来就应该让我们高雅而优美的Python来实现，Java你瞎凑什么热闹啊~~ 与weka的实现相比，sklearn果然还是继承了Pytho ...
+          &#160; &#160; &#160; &#160;以前写过一篇博文是利用weka来实现多项式朴素贝叶斯增量学习。这次利用python中的sklearn学习工具来实现。其实个人感觉像机器学习，数据处理这种活本来就应该让我们高雅而优美的Python来实现，Java你瞎凑什么热闹啊~~&#16 ...
         
       </div>
       <a class="more" href="/2016/09/21/sklearn-naive-bayes/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/09/12/jetbrains/">新一代宇宙IDE----JetBrains</a>
-      </h2>
-      <p class="article-date">September 12, 2016</p>
-      
-      <div class="article-summary">
-        
-          一直在用jetbrains系列的IDE开发，感觉用他们家的IDE跟集邮似的，越玩越上瘾。 先来一张我的解锁图：  去JetBrains官网上一看，他们家的触手已经伸向各大主流语言了。。。  看来以后得跟他们家过一辈子了。。。。 文末来个小福利吧，JetBrains系列破解连接：地址
-
-        
-      </div>
-      <a class="more" href="/2016/09/12/jetbrains/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/09/07/python-similarity-pic/">python进行简单的图片相似度检测</a>
-      </h2>
-      <p class="article-date">September 7, 2016</p>
-      
-      <div class="article-summary">
-        
-          来源于阮一峰的博客 对两张图片进行相似度检测，思路就是对两张图片分别计算其指纹信息，然后对比两张图片的指纹信息的差异度。 基本算法为： 第一步，缩小尺寸。 将图片缩小到8x8的尺寸，总共64个像素。这一步的作用是去除图片的细节，只保留结构、明暗等基本信息，摒弃不同尺寸、比例带来的图片差异。  ...
-        
-      </div>
-      <a class="more" href="/2016/09/07/python-similarity-pic/">Read more</a>
     </article>
   
     <article class="article-card">
@@ -219,24 +162,10 @@
       <div class="article-summary">
         
           本文打算长期更新一些有意思的python代码片段，就当做是学习笔记。
-1.python多线程死锁import time,threading locka = threading.Lock() lockb = threading.Lock() def fa(): print(&#39;a&#39 ...
+1.python多线程死锁123456789101112131415161718192021222324252627282930313233343536373839404142import time,threadinglo ...
         
       </div>
       <a class="more" href="/2016/08/31/some-python-code/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/08/31/async-staff/">同步|异步|阻塞|非阻塞</a>
-      </h2>
-      <p class="article-date">August 31, 2016</p>
-      
-      <div class="article-summary">
-        
-          同步异步，阻塞非阻塞这一直是一个很难理解的概念。以前也看过一些资料，但现在回想起来还是一片空白。所以整理一篇文章来记录下，以期备忘。 网上看到一句话，还是挺形象的： “阻塞和非阻塞是等待方式的区别，比如你去取钱，等待过程中，你一直在那边等，什么事情都做不了；而非阻塞是先给一个结果“可能要花点 ...
-        
-      </div>
-      <a class="more" href="/2016/08/31/async-staff/">Read more</a>
     </article>
   
     <article class="article-card">
@@ -247,7 +176,8 @@
       
       <div class="article-summary">
         
-          GitHub API其实是一座宝藏，它拥有着海量项目以及开发者的各类信息，可以作为社交编程以及经验软件工程课题的数据载体。 本次教程较大家如何使用scrapy来爬取GitHub API，抓取我们所需要的特定信息。GitHub API 是GitHub基于OAuth2协议开放出来的数据获取接口， ...
+          &#160; &#160; &#160; &#160;GitHub API其实是一座宝藏，它拥有着海量项目以及开发者的各类信息，可以作为社交编程以及经验软件工程课题的数据载体。
+&#160; &#160; &#160; &#160;本次教程教大家如何使用scrapy来爬取GitHub API ...
         
       </div>
       <a class="more" href="/2016/08/30/scrapy-for-github/">Read more</a>
@@ -261,7 +191,7 @@
       
       <div class="article-summary">
         
-          多元混合效应逻辑回归（Mixed Effects Logistic Regression）是什么： 混合效应逻辑回归是一种二分类模型，其输出是一组预测变量(自变量)的线性组合，但是样本不是简单地独立的，而是集群式分布，也即某个群体之间存在内部关联。 （Mixed effects logist ...
+          &#160; &#160; &#160; &#160;多元混合效应逻辑回归（Mixed Effects Logistic Regression）是什么：&#160; &#160; &#160; &#160;混合效应逻辑回归是一种二分类模型，其输出是一组预测变量(自变量)的线性组合，但是样本不 ...
         
       </div>
       <a class="more" href="/2016/08/26/mixed-effect-logistic-regression/">Read more</a>
@@ -275,10 +205,82 @@
       
       <div class="article-summary">
         
-          我相信每个程序员心里都有一个黑客梦，我也不例外。本科四年，舍友malash大神天天遨游在学校的各种服务器之间，xss,sql注入，shell提权信手拈来，请允许我再次献上我的膝盖。 好了，废话不多说。最近再看一些web安全相关的东东，对sql注入的原理也有了更为深刻的理解，但纸上得来终觉浅， ...
+          &#160; &#160; &#160; &#160;我相信每个程序员心里都有一个黑客梦，我也不例外。本科四年，舍友malash大神天天遨游在学校的各种服务器之间，xss,sql注入，shell提权信手拈来，请允许我再次献上我的膝盖。 好了，废话不多说。最近再看一些web安全相关的东东，对s ...
         
       </div>
       <a class="more" href="/2016/08/24/do-some-hack/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/08/19/changes-for-tp5/">对thinkphp5.0 rc4的一些改动</a>
+      </h2>
+      <p class="article-date">August 19, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;最近开发一直用的是thinkphp5.0 rc4，个人感觉相较于tp3.x, tp5.0的进步是巨大的。&#160; &#160; &#160; &#160;开发使用框架时，有时候需要根据自己的业务逻辑来框架源码做一些小改动，本文记录我在 ...
+        
+      </div>
+      <a class="more" href="/2016/08/19/changes-for-tp5/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/08/12/weka-naivebayes/">用weka进行多项式朴素贝叶斯增量学习</a>
+      </h2>
+      <p class="article-date">August 12, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;有时候我们进行贝叶斯分类时，由于数据量太大导致内存溢出或者对模型的训练有着特殊要求(比如用第一个月的数据预测第二个月，再将第二个月的数据加入已经训练好的模型，去预测第三个月…)，这时普通的贝叶斯分类不行了。我们需要使用贝叶斯来进行增量学习 ...
+        
+      </div>
+      <a class="more" href="/2016/08/12/weka-naivebayes/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/08/04/python-spider/">python小爬虫---爬取网名及头像</a>
+      </h2>
+      <p class="article-date">August 4, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;一款产品发布，其初始用户量很小，这时就需要伪造一批用户来增加平台的用户量，搭起初步的用户生态系统。那么伪造用户时，我们必然需要网名以及头像（也有可能需要签名）等等信息。所以前些日子写了个小爬虫来爬取一批（30000+）网名及头像。&#16 ...
+        
+      </div>
+      <a class="more" href="/2016/08/04/python-spider/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/07/26/ecs-test/">苦逼的一天：运维真辛苦</a>
+      </h2>
+      <p class="article-date">July 26, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;今天打算好好测一下我们的哒哒相机APP (友情广告一波,下载链接)的后台性能。目前哒哒相机APP只用了一台阿里云ECS(1核CPU、2G内存~~). 为了开发测试, 又买了一台用作测试服务器(1核CPU、1G内存). 后台环境为ubunt ...
+        
+      </div>
+      <a class="more" href="/2016/07/26/ecs-test/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2016/05/07/begin-structure/">架构之路----始于足下</a>
+      </h2>
+      <p class="article-date">May 7, 2016</p>
+      
+      <div class="article-summary">
+        
+          &#160; &#160; &#160; &#160;前些日子，AWS EC2做活动，注册即可免费试用一年，这等好事怎能错过，遂赶紧领了一台，可以上一些和谐的网站，顺便当做我个人的博客。因此这算是我正式写的第一篇博客吧。  
+
+&#160; &#160; &#160; &#160;大概在三个 ...
+        
+      </div>
+      <a class="more" href="/2016/05/07/begin-structure/">Read more</a>
     </article>
   
 
@@ -288,7 +290,7 @@
     <a href="/"><span class="page-arrow">← </span>Prev</a>
   
   
-    <a href="/page/3/">Next<span class="page-arrow"> →</span></a>
+    <a class="unvisible" href="/">Next <span class="page-arrow">→</span></a>
   
 </div>
   
