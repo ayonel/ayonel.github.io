@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -154,15 +154,23 @@
 <li>Db类中使用分页输出数据的page()方法。</li>
 </ol>
 </blockquote>
-<p><strong>改动缘由：</strong>跟前台程序对接的时候，需要根据前台传入的$page变量来选择输出.例如page($page,10)，代表按10条数据分页，取第$page页。<br>在开发的时候我发现$page传入0或者1，生成的sql都是一样的，取到的数据当然也一样。可能tp作者觉得默认开始的第一页就应该以1来表示，没有第0页。但跟前台约定的是:$page默认是0，所以$page=0应该是第一页，$pgae=1代表第二页。如果不做修改的话，$page第一次传0，下一次传1会返回相同的数据。<br><strong>改动位置：</strong>/thinkphp/library/think/db/Query.php(2122-2129)：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">if (isset($options[&apos;page&apos;])) &#123;</span><br><span class="line">     // 根据页数计算limit</span><br><span class="line">     list($page, $listRows) = $options[&apos;page&apos;];</span><br><span class="line">     $page                  = $page &gt; 0 ? $page : 1;//对于传入的0它会自动变为1,需要改动</span><br><span class="line">     $listRows              = $listRows &gt; 0 ? $listRows : (is_numeric($options[&apos;limit&apos;]) ? $options[&apos;limit&apos;] : 20);</span><br><span class="line">     $offset                = $listRows * ($page - 1);</span><br><span class="line">     $options[&apos;limit&apos;]      = $offset . &apos;,&apos; . $listRows;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><strong>更改后：</strong></p>
-<pre><code>if (isset($options[&apos;page&apos;])) {
+<p><strong>改动缘由：</strong>跟前台程序对接的时候，需要根据前台传入的$page变量来选择输出.例如page($page,10)，代表按10条数据分页，取第$page页。<br>在开发的时候我发现$page传入0或者1，生成的sql都是一样的，取到的数据当然也一样。可能tp作者觉得默认开始的第一页就应该以1来表示，没有第0页。但跟前台约定的是:$page默认是0，所以$page=0应该是第一页，$pgae=1代表第二页。如果不做修改的话，$page第一次传0，下一次传1会返回相同的数据。<br><strong>改动位置：</strong>/thinkphp/library/think/db/Query.php(2122-2129)：</p>
+<pre><code>if (isset($options[&#39;page&#39;])) {
      // 根据页数计算limit
-     list($page, $listRows) = $options[&apos;page&apos;];
+     list($page, $listRows) = $options[&#39;page&#39;];
+     $page                  = $page &gt; 0 ? $page : 1;//对于传入的0它会自动变为1,需要改动
+     $listRows              = $listRows &gt; 0 ? $listRows : (is_numeric($options[&#39;limit&#39;]) ? $options[&#39;limit&#39;] : 20);
+     $offset                = $listRows * ($page - 1);
+     $options[&#39;limit&#39;]      = $offset . &#39;,&#39; . $listRows;
+}
+</code></pre><p><strong>更改后：</strong></p>
+<pre><code>if (isset($options[&#39;page&#39;])) {
+     // 根据页数计算limit
+     list($page, $listRows) = $options[&#39;page&#39;];
      $page                  = $page &gt;= 0 ? $page : 0;//传入的0会保持原来的0，并且其他非自然数类型也要自动变为0
-     $listRows              = $listRows &gt; 0 ? $listRows : (is_numeric($options[&apos;limit&apos;]) ? $options[&apos;limit&apos;] : 20);
+     $listRows              = $listRows &gt; 0 ? $listRows : (is_numeric($options[&#39;limit&#39;]) ? $options[&#39;limit&#39;] : 20);
      $offset                = $listRows * $page;//$page-1改为$page
-     $options[&apos;limit&apos;]      = $offset . &apos;,&apos; . $listRows;
+     $options[&#39;limit&#39;]      = $offset . &#39;,&#39; . $listRows;
 }
 </code></pre><blockquote>
 <ol start="2">
@@ -227,7 +235,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/08/19/changes-for-tp5/';
+    var url = 'http://ayonel.github.io/2016/08/19/changes-for-tp5/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -280,15 +288,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "对thinkphp5.0 rc4的一些改动",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -311,7 +319,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/08/19/changes-for-tp5/';
+  var disqus_url = 'http://ayonel.github.io/2016/08/19/changes-for-tp5/';
   
   (function(){
     var dsq = document.createElement('script');

@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -162,7 +162,13 @@
       <div class="article-summary">
         
           本文打算长期更新一些有意思的python代码片段，就当做是学习笔记。
-1.python多线程死锁123456789101112131415161718192021222324252627282930313233343536373839404142import time,threadinglo ...
+1.python多线程死锁import time,threading
+
+locka = threading.Lock()
+lockb = threading.Lock()
+
+def fa():
+    print(&#39 ...
         
       </div>
       <a class="more" href="/2016/08/31/some-python-code/">Read more</a>

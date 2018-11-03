@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -147,8 +147,40 @@
 <main class="app-body flex-box">
   <!-- Article START -->
   <article class="post-article">
-    <section class="markdown-content"><p>&#160; &#160; &#160; &#160;有时候我们进行贝叶斯分类时，由于数据量太大导致内存溢出或者对模型的训练有着特殊要求(比如用第一个月的数据预测第二个月，再将第二个月的数据加入已经训练好的模型，去预测第三个月…)，这时普通的贝叶斯分类不行了。我们需要使用贝叶斯来进行增量学习（incremental learning）, weka的贝叶斯分类器即存在增量式的贝叶斯分类器。下文以多项式朴素贝叶斯增量学习为例，weka中的包为：<br><code>weka.classifiers.bayes.NaiveBayesMultinomialUpdateable</code><br>&#160; &#160; &#160; &#160;下文是核心代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//获取第一个月的数据用于建立模型</span><br><span class="line">       ArffLoader loader = new ArffLoader();</span><br><span class="line">       loader.setFile(new File(&quot;month1.arff&quot;));</span><br><span class="line">       loader.getStructure();//这句话必须有，不然会报错</span><br><span class="line"></span><br><span class="line">       //定义分类器 并用第一个月的数据做训练</span><br><span class="line">       Instances originDataSet = loader.getDataSet();//获取第一个月的实例</span><br><span class="line">       originDataSet.setClassIndex(originDataSet.numAttributes()-1);//定义最后一个属性作为分类目标</span><br><span class="line">       NaiveBayesMultinomialUpdateable nb = new NaiveBayesMultinomialUpdateable();//定义模型</span><br><span class="line">       nb.buildClassifier(originDataSet);//建立模型</span><br><span class="line"></span><br><span class="line">       //对从第二个月起的每个月进行预测和训练,一直到第100个月,(2,100只是用于示例)</span><br><span class="line">       for (int month = 2; month &lt;= 100; month++) &#123;</span><br><span class="line">           //读取测试集</span><br><span class="line">           ArffLoader testLoader = new ArffLoader();</span><br><span class="line">           testLoader.setFile(new File(&quot;month&quot;+i+&quot;.arff&quot;));</span><br><span class="line">           testLoader.getStructure();</span><br><span class="line"></span><br><span class="line">           Instances testDataSet = testLoader.getDataSet();//获取测试集实例</span><br><span class="line">           //进行分类，并且输出</span><br><span class="line">           for (int i = 0; i&lt; testDataSet.numInstances(); i++) &#123;</span><br><span class="line">               FileWriter fileWritter = new FileWriter(&quot;output.txt&quot;, true);</span><br><span class="line">               BufferedWriter bufferWritter = new BufferedWriter(fileWritter);</span><br><span class="line">               bufferWritter.write(nb.distributionForInstance(testDataSet.instance(i))[1]+&apos;\n&apos;);//这一行输出的是分类中分到第二类(下标为1)的概率</span><br><span class="line">               bufferWritter.flush();</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           // 再把这次的测试集当做训练集进行训练</span><br><span class="line">           for (int i = 0; i&lt; testDataSet.size(); i++) &#123;</span><br><span class="line">               testDataSet.setClassIndex(testDataSet.numAttributes()-1);</span><br><span class="line">               nb.updateClassifier(testDataSet.get(i));</span><br><span class="line">           &#125;</span><br></pre></td></tr></table></figure></p>
-</section>
+    <section class="markdown-content"><p>&#160; &#160; &#160; &#160;有时候我们进行贝叶斯分类时，由于数据量太大导致内存溢出或者对模型的训练有着特殊要求(比如用第一个月的数据预测第二个月，再将第二个月的数据加入已经训练好的模型，去预测第三个月…)，这时普通的贝叶斯分类不行了。我们需要使用贝叶斯来进行增量学习（incremental learning）, weka的贝叶斯分类器即存在增量式的贝叶斯分类器。下文以多项式朴素贝叶斯增量学习为例，weka中的包为：<br><code>weka.classifiers.bayes.NaiveBayesMultinomialUpdateable</code><br>&#160; &#160; &#160; &#160;下文是核心代码：</p>
+<pre><code> //获取第一个月的数据用于建立模型
+        ArffLoader loader = new ArffLoader();
+        loader.setFile(new File(&quot;month1.arff&quot;));
+        loader.getStructure();//这句话必须有，不然会报错
+
+        //定义分类器 并用第一个月的数据做训练
+        Instances originDataSet = loader.getDataSet();//获取第一个月的实例
+        originDataSet.setClassIndex(originDataSet.numAttributes()-1);//定义最后一个属性作为分类目标
+        NaiveBayesMultinomialUpdateable nb = new NaiveBayesMultinomialUpdateable();//定义模型
+        nb.buildClassifier(originDataSet);//建立模型
+
+        //对从第二个月起的每个月进行预测和训练,一直到第100个月,(2,100只是用于示例)
+        for (int month = 2; month &lt;= 100; month++) {
+            //读取测试集
+            ArffLoader testLoader = new ArffLoader();
+            testLoader.setFile(new File(&quot;month&quot;+i+&quot;.arff&quot;));
+            testLoader.getStructure();
+
+            Instances testDataSet = testLoader.getDataSet();//获取测试集实例
+            //进行分类，并且输出
+            for (int i = 0; i&lt; testDataSet.numInstances(); i++) {
+                FileWriter fileWritter = new FileWriter(&quot;output.txt&quot;, true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                bufferWritter.write(nb.distributionForInstance(testDataSet.instance(i))[1]+&#39;\n&#39;);//这一行输出的是分类中分到第二类(下标为1)的概率
+                bufferWritter.flush();
+            }
+
+            // 再把这次的测试集当做训练集进行训练
+            for (int i = 0; i&lt; testDataSet.size(); i++) {
+                testDataSet.setClassIndex(testDataSet.numAttributes()-1);
+                nb.updateClassifier(testDataSet.get(i));
+            }
+</code></pre></section>
     <!-- Tags START -->
     
     <!-- Tags END -->
@@ -205,7 +237,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/08/12/weka-naivebayes/';
+    var url = 'http://ayonel.github.io/2016/08/12/weka-naivebayes/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -258,15 +290,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "用weka进行多项式朴素贝叶斯增量学习",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -289,7 +321,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/08/12/weka-naivebayes/';
+  var disqus_url = 'http://ayonel.github.io/2016/08/12/weka-naivebayes/';
   
   (function(){
     var dsq = document.createElement('script');

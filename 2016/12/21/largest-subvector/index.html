@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -148,12 +148,106 @@
   <!-- Article START -->
   <article class="post-article">
     <section class="markdown-content"><h5 id="问题描述："><a href="#问题描述：" class="headerlink" title="问题描述："></a>问题描述：</h5><p>输入具有n个浮点数的向量x，输出向量x中任何连续子向量中的最大和。例如：<br>如果x={1,2,3}，则output=6<br>如果x={1,-2,3}，则output=3<br>如果x={31,-41,59,26,-53,58,97,-93,-23,84},则output=187<br>当所有输入为负数时，最大连续子向量为空向量，输出为0 </p>
-<h5 id="问题来源："><a href="#问题来源：" class="headerlink" title="问题来源："></a>问题来源：</h5><p>《编程珠玑 第2版》第8章 对于该问题，平方算法书中给出了两种，都比较直观。<br> <strong>作者提出了一种O(nlogn)的算法</strong>，主要利用分治和递归。将原向量从中间分开，分为左向量和右向量。递归寻找左向量，右向量，以及以分开点为起点的向左最大向量+向右最大向量。 书中也给出了算法。如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">int x[10] = &#123;31,-41,59,26,-53,58,97,-93,-23,84&#125;;</span><br><span class="line">float max(float x, float y) &#123;</span><br><span class="line">    return x &gt;= y? x : y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">float max3(float x, float y, float z) &#123;</span><br><span class="line">    int larger = max(x, y);</span><br><span class="line">    return max(larger, z);</span><br><span class="line">&#125;</span><br><span class="line">//核心算法</span><br><span class="line">float maxsum3(int l, int u) &#123;</span><br><span class="line">    if (l &gt; u)</span><br><span class="line">        return 0;</span><br><span class="line">    if (l == u)</span><br><span class="line">        return max(0, x[1]);</span><br><span class="line">    int m = (l + u) / 2;</span><br><span class="line">    //找出以m为起点的向左的最大子向量</span><br><span class="line">    float lmax  = 0;</span><br><span class="line">    float sum = 0;</span><br><span class="line">    for (int i = m; i &gt;= 1; i--) &#123;</span><br><span class="line">        sum += x[i];</span><br><span class="line">        lmax = max(lmax, sum);</span><br><span class="line">    &#125;</span><br><span class="line">    //找出以m为起点的向右的最大子向量</span><br><span class="line">    float rmax = 0;</span><br><span class="line">    sum = 0;</span><br><span class="line">    for(int i = m + 1; i &lt; u; i++) &#123;</span><br><span class="line">        sum += x[i];</span><br><span class="line">        rmax = max(rmax, sum);</span><br><span class="line">    &#125;</span><br><span class="line">    //lmax+rmax 就是经过m的最大子向量</span><br><span class="line">    return max3(lmax+rmax, maxsum3(l, m), maxsum3(m+1, u));</span><br><span class="line">&#125;</span><br><span class="line">int main()&#123;</span><br><span class="line">    printf(&quot;%f&quot;, maxsum3_l(0,9));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p><strong>书中又给出了一个线性扫描算法</strong>，时间复杂度为O(n),程序的关键就是对maxendinghere变量，在每一次for循环中对其赋值之前，其是结束位置为i-1的最大子向量的和。赋值后其实结束位置为i的最大子向量的和；若加上x[i]之后结果依然为正，则该赋值语句将maxendinghere增大x[i];若加上x[i]之后结果为负，则该赋值语句将maxendinghere置为0（因为结束为止为i的最大子向量现在为空向量） 代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdlib.h&gt;</span><br><span class="line">int x[10] = &#123;31,-41,59,26,-53,58,97,-93,-23,84&#125;;</span><br><span class="line">float maxsum4(int n)&#123;</span><br><span class="line">    float maxsofar = 0;</span><br><span class="line">    float maxendinghere = 0;</span><br><span class="line">    for (int i = 0; i &lt; n; ++i) &#123;</span><br><span class="line">        maxendinghere = max(maxendinghere+x[i], 0);</span><br><span class="line">        maxsofar = max(maxsofar, maxendinghere);</span><br><span class="line">    &#125;</span><br><span class="line">    return maxsofar;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()&#123;</span><br><span class="line">    printf(&quot;%f&quot;, maxsum4(10));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>可以证明不会存在快于O(n)的算法</strong><br>在课后题中作者提出改进原来O(nlogn)的递归算法，使其在最坏情况下的复杂度为O(n),主要核心思想是从m向左以及向右找最大子向量时，要记下最大子向量的结束位置，下一轮递归寻找时，直接从上一次记下的结束位置开始，分别向左和向右找。代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">include &lt;stdlib.h&gt;</span><br><span class="line">int x[10] = &#123;31,-41,59,26,-53,58,97,-93,-23,84&#125;;</span><br><span class="line">float max(float x, float y) &#123;</span><br><span class="line">    return x &gt;= y? x : y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">float max3(float x, float y, float z) &#123;</span><br><span class="line">    int larger = max(x, y);</span><br><span class="line">    return max(larger, z);</span><br><span class="line">&#125;</span><br><span class="line">float maxsum3_l(int l, int u) &#123;</span><br><span class="line">    if (l &gt; u)</span><br><span class="line">        return 0;</span><br><span class="line">    if (l == u)</span><br><span class="line">        return max(0, x[l]);</span><br><span class="line">    int m = (l + u) / 2;</span><br><span class="line"></span><br><span class="line">    float lmax  = 0;</span><br><span class="line">    float sum = 0;</span><br><span class="line">    int last_l = m;  // 向左找时最大子向量的结束位置</span><br><span class="line">    for (int i = m; i &gt;= 0; i--) &#123;</span><br><span class="line">        sum += x[i];</span><br><span class="line">        if (lmax&lt;=sum) &#123;</span><br><span class="line">            lmax = sum;</span><br><span class="line">            last_l--;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    int last_r = m+1; //向右找时最大子向量的结束位置</span><br><span class="line">    float rmax = 0;</span><br><span class="line">    sum = 0;</span><br><span class="line">    for(int i = m + 1; i &lt;= u; i++) &#123;</span><br><span class="line">        sum += x[i];</span><br><span class="line">        if (rmax&lt;sum) &#123;</span><br><span class="line">            rmax = sum;</span><br><span class="line">            last_r++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return max3(lmax+rmax, maxsum3_l(l, last_l-1), maxsum3_l(last_r, u)); //直接从结束位置向左及向右找</span><br><span class="line">&#125;</span><br><span class="line">int main()&#123;</span><br><span class="line">    printf(&quot;%f&quot;, maxsum3_l(0,9));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>上述程序的输出应该均为187.000000</strong></p>
+<h5 id="问题来源："><a href="#问题来源：" class="headerlink" title="问题来源："></a>问题来源：</h5><p>《编程珠玑 第2版》第8章 对于该问题，平方算法书中给出了两种，都比较直观。<br> <strong>作者提出了一种O(nlogn)的算法</strong>，主要利用分治和递归。将原向量从中间分开，分为左向量和右向量。递归寻找左向量，右向量，以及以分开点为起点的向左最大向量+向右最大向量。 书中也给出了算法。如下：</p>
+<pre><code>#include &lt;stdlib.h&gt;
+int x[10] = {31,-41,59,26,-53,58,97,-93,-23,84};
+float max(float x, float y) {
+    return x &gt;= y? x : y;
+}
+
+float max3(float x, float y, float z) {
+    int larger = max(x, y);
+    return max(larger, z);
+}
+//核心算法
+float maxsum3(int l, int u) {
+    if (l &gt; u)
+        return 0;
+    if (l == u)
+        return max(0, x[1]);
+    int m = (l + u) / 2;
+    //找出以m为起点的向左的最大子向量
+    float lmax  = 0;
+    float sum = 0;
+    for (int i = m; i &gt;= 1; i--) {
+        sum += x[i];
+        lmax = max(lmax, sum);
+    }
+    //找出以m为起点的向右的最大子向量
+    float rmax = 0;
+    sum = 0;
+    for(int i = m + 1; i &lt; u; i++) {
+        sum += x[i];
+        rmax = max(rmax, sum);
+    }
+    //lmax+rmax 就是经过m的最大子向量
+    return max3(lmax+rmax, maxsum3(l, m), maxsum3(m+1, u));
+}
+int main(){
+    printf(&quot;%f&quot;, maxsum3_l(0,9));
+}
+</code></pre><p><strong>书中又给出了一个线性扫描算法</strong>，时间复杂度为O(n),程序的关键就是对maxendinghere变量，在每一次for循环中对其赋值之前，其是结束位置为i-1的最大子向量的和。赋值后其实结束位置为i的最大子向量的和；若加上x[i]之后结果依然为正，则该赋值语句将maxendinghere增大x[i];若加上x[i]之后结果为负，则该赋值语句将maxendinghere置为0（因为结束为止为i的最大子向量现在为空向量） 代码如下：</p>
+<pre><code>#include &lt;stdlib.h&gt;
+int x[10] = {31,-41,59,26,-53,58,97,-93,-23,84};
+float maxsum4(int n){
+    float maxsofar = 0;
+    float maxendinghere = 0;
+    for (int i = 0; i &lt; n; ++i) {
+        maxendinghere = max(maxendinghere+x[i], 0);
+        maxsofar = max(maxsofar, maxendinghere);
+    }
+    return maxsofar;
+}
+
+int main(){
+    printf(&quot;%f&quot;, maxsum4(10));
+
+}
+</code></pre><p><strong>可以证明不会存在快于O(n)的算法</strong><br>在课后题中作者提出改进原来O(nlogn)的递归算法，使其在最坏情况下的复杂度为O(n),主要核心思想是从m向左以及向右找最大子向量时，要记下最大子向量的结束位置，下一轮递归寻找时，直接从上一次记下的结束位置开始，分别向左和向右找。代码如下：</p>
+<pre><code>include &lt;stdlib.h&gt;
+int x[10] = {31,-41,59,26,-53,58,97,-93,-23,84};
+float max(float x, float y) {
+    return x &gt;= y? x : y;
+}
+
+float max3(float x, float y, float z) {
+    int larger = max(x, y);
+    return max(larger, z);
+}
+float maxsum3_l(int l, int u) {
+    if (l &gt; u)
+        return 0;
+    if (l == u)
+        return max(0, x[l]);
+    int m = (l + u) / 2;
+
+    float lmax  = 0;
+    float sum = 0;
+    int last_l = m;  // 向左找时最大子向量的结束位置
+    for (int i = m; i &gt;= 0; i--) {
+        sum += x[i];
+        if (lmax&lt;=sum) {
+            lmax = sum;
+            last_l--;
+        }
+    }
+
+    int last_r = m+1; //向右找时最大子向量的结束位置
+    float rmax = 0;
+    sum = 0;
+    for(int i = m + 1; i &lt;= u; i++) {
+        sum += x[i];
+        if (rmax&lt;sum) {
+            rmax = sum;
+            last_r++;
+        }
+    }
+    return max3(lmax+rmax, maxsum3_l(l, last_l-1), maxsum3_l(last_r, u)); //直接从结束位置向左及向右找
+}
+int main(){
+    printf(&quot;%f&quot;, maxsum3_l(0,9));
+}
+</code></pre><p><strong>上述程序的输出应该均为187.000000</strong></p>
 </section>
     <!-- Tags START -->
     
@@ -211,7 +305,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/12/21/largest-subvector/';
+    var url = 'http://ayonel.github.io/2016/12/21/largest-subvector/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -264,15 +358,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "计算最大连续子向量",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -295,7 +389,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/12/21/largest-subvector/';
+  var disqus_url = 'http://ayonel.github.io/2016/12/21/largest-subvector/';
   
   (function(){
     var dsq = document.createElement('script');

@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -152,8 +152,142 @@
 </blockquote>
 <h5 id="题目来源："><a href="#题目来源：" class="headerlink" title="题目来源："></a>题目来源：</h5><p>《编程之法》、《编程珠玑》<br>原理比较简单，但是要完整地实现起来，需要很多基础的小算法，如排序，搜索等。应该，用这个题顺便来练习一下基本算法，还是挺有意义的。</p>
 <h5 id="解题思路："><a href="#解题思路：" class="headerlink" title="解题思路："></a>解题思路：</h5><p>首先用快排对整个字典排序，排序的比较标准是每个单词内部先排好序之后的签名，比如”apple”—&gt;”aelpp”,”dddap”—&gt;”adddp”;再用排序之后的字典二分搜索目标单词，找到签名一样的单词，则分别向上，向下找到同样签名的单词，并输出；</p>
-<h5 id="代码："><a href="#代码：" class="headerlink" title="代码："></a>代码：</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 如果两个字符串中的字符一样，出现次数也一样，只是出现的顺序的顺序不一样，则认为这两个字符串是兄弟字符串。</span></span><br><span class="line"><span class="comment"> * 例如"bad"和"adb"即为兄弟字符串。现提供一个字符串，请问如何在字典中迅速找到它的兄弟字符串</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 例如待查找的字符串是"apple",字典是&#123;"appl","paal","aplep","bb","leapp","hello"&#125;</span></span><br><span class="line"><span class="comment"> * 则输出的单词应为："aplep", "leapp"</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 首先用快排对整个字典排序，排序的比较标准是每个单词内部先排好序之后的签名，比如"apple"---&gt;"aelpp","dddap"---&gt;"adddp";</span></span><br><span class="line"><span class="comment"> * 再用排序之后的字典二分搜索目标单词，找到签名一样的单词，则分别向上，向下找同样签名的单词，并输出；</span></span><br><span class="line"><span class="comment"> **/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MAX_LEN 20 <span class="comment">// 假定每个单词的最大字符数是20</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> WORD_COUNT 6</span></span><br><span class="line"><span class="keyword">char</span> <span class="built_in">set</span>[][WORD_COUNT] = &#123;<span class="string">"appl"</span>,<span class="string">"paal"</span>,<span class="string">"aplep"</span>,<span class="string">"bb"</span>,<span class="string">"leapp"</span>,<span class="string">"hello"</span>&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过对单词插入排序，获取签名，不要直接传入原数组中的单词，应该传入单词的副本，反正覆盖原数组</span></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">sign</span><span class="params">(<span class="keyword">char</span> *result)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">char</span> tmp = <span class="string">' '</span>;</span><br><span class="line">    <span class="comment">//插入排序</span></span><br><span class="line">    <span class="keyword">while</span> (result[i] != <span class="string">'\0'</span>) &#123;</span><br><span class="line">        tmp = result[i];</span><br><span class="line">        <span class="keyword">for</span>(j = i; j &gt; <span class="number">0</span> &amp;&amp; result[j<span class="number">-1</span>] &gt; tmp; j--) &#123;</span><br><span class="line">            result[j] = result[j<span class="number">-1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        result[j] = tmp;</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//比较两个单词的签名大小</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">compare_by_sign</span><span class="params">(<span class="keyword">char</span> *a, <span class="keyword">char</span> *b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> sort_a[MAX_LEN];</span><br><span class="line">    <span class="keyword">char</span> sort_b[MAX_LEN];</span><br><span class="line">    <span class="built_in">strcpy</span>(sort_a, a);</span><br><span class="line">    <span class="built_in">strcpy</span>(sort_b, b);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">strcmp</span>(sign(sort_a), sign(sort_b));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//比较两个单词大小</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">compare</span><span class="params">(<span class="keyword">char</span> *a, <span class="keyword">char</span> *b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">strcmp</span>(a, b);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//交换原数组中下标为i和j的单词位置</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">swap</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> j)</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (i == j)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">char</span> tmp[MAX_LEN];</span><br><span class="line">    <span class="built_in">strcpy</span>(tmp, <span class="built_in">set</span>[i]);</span><br><span class="line">    <span class="built_in">strcpy</span>(<span class="built_in">set</span>[i], <span class="built_in">set</span>[j]);</span><br><span class="line">    <span class="built_in">strcpy</span>(<span class="built_in">set</span>[j], tmp);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对原数组按照签名大小，进行快排</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">qsort</span><span class="params">(<span class="keyword">int</span> l, <span class="keyword">int</span> u)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (l &gt; u)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">int</span> m = l;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = l+<span class="number">1</span>; i &lt;= u; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(compare_by_sign(<span class="built_in">set</span>[i], <span class="built_in">set</span>[l]) &lt; <span class="number">0</span>)&#123;</span><br><span class="line">            swap(i,++m);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    swap(m,l);</span><br><span class="line"></span><br><span class="line">    qsort(l, m<span class="number">-1</span>);</span><br><span class="line">    qsort(m+<span class="number">1</span>, u);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//在排序好的数组中二分查找签名相同的单词，并输出</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">bsearch</span><span class="params">(<span class="keyword">int</span> l, <span class="keyword">int</span> u, <span class="keyword">char</span> *word_sign, <span class="keyword">int</span> *is_found)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> mid = (u - l) / <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">if</span> (l &gt; u) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">char</span> mid_sign[MAX_LEN];</span><br><span class="line">    <span class="built_in">strcpy</span>(mid_sign, <span class="built_in">set</span>[mid]);</span><br><span class="line">    sign(mid_sign);</span><br><span class="line">    <span class="keyword">int</span> com_result = compare(mid_sign, word_sign);</span><br><span class="line">    <span class="keyword">if</span> (com_result &gt; <span class="number">0</span>)</span><br><span class="line">        bsearch(l, mid<span class="number">-1</span>, word_sign, is_found);</span><br><span class="line">    <span class="keyword">if</span> (com_result &lt; <span class="number">0</span>)</span><br><span class="line">        bsearch(mid+<span class="number">1</span>, u, word_sign, is_found);</span><br><span class="line">    <span class="keyword">if</span> (com_result == <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="comment">//找到了，开始向下以及向上寻找相同签名的词</span></span><br><span class="line">        <span class="keyword">int</span> flag = mid;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"found brother word:\n%s\n"</span>,<span class="built_in">set</span>[mid]);</span><br><span class="line">        *is_found = <span class="number">1</span>;</span><br><span class="line">        mid--;</span><br><span class="line">        flag++;</span><br><span class="line">        <span class="comment">//向上找</span></span><br><span class="line">        <span class="keyword">while</span>(mid &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(compare(sign(<span class="built_in">set</span>[mid]), word_sign) == <span class="number">0</span>)</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"%s\n"</span>,<span class="built_in">set</span>[mid]);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            mid--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//向下找</span></span><br><span class="line">        <span class="keyword">while</span>(flag &lt; WORD_COUNT) &#123;</span><br><span class="line">            <span class="keyword">if</span>(compare(sign(<span class="built_in">set</span>[flag]), word_sign) == <span class="number">0</span>)</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"%s\n"</span>,<span class="built_in">set</span>[flag]);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            flag++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    qsort(<span class="number">0</span>, WORD_COUNT<span class="number">-1</span>); <span class="comment">//对原数组排序</span></span><br><span class="line">    <span class="keyword">char</span> des[] = <span class="string">"apple"</span>; <span class="comment">//待查找单词</span></span><br><span class="line">    <span class="keyword">char</span> *word_sign;</span><br><span class="line">    word_sign = sign(des); <span class="comment">//待查找单词的签名</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sign is: %s\n"</span>, word_sign);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> is_found = <span class="number">0</span>; <span class="comment">//标记是否找到</span></span><br><span class="line">    bsearch(<span class="number">0</span>, WORD_COUNT, sign(des), &amp;is_found); <span class="comment">//二分查找</span></span><br><span class="line">    <span class="keyword">if</span> (is_found == <span class="number">0</span>) &#123; <span class="comment">//未找到</span></span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, <span class="string">"can not found brother word!!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>输出为：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sign is: aelpp</span><br><span class="line">found brother word:</span><br><span class="line">leapp</span><br><span class="line">aelpp</span><br></pre></td></tr></table></figure></p>
+<h5 id="代码："><a href="#代码：" class="headerlink" title="代码："></a>代码：</h5><pre><code class="C">/**
+ * 如果两个字符串中的字符一样，出现次数也一样，只是出现的顺序的顺序不一样，则认为这两个字符串是兄弟字符串。
+ * 例如&quot;bad&quot;和&quot;adb&quot;即为兄弟字符串。现提供一个字符串，请问如何在字典中迅速找到它的兄弟字符串
+ *
+ * 例如待查找的字符串是&quot;apple&quot;,字典是{&quot;appl&quot;,&quot;paal&quot;,&quot;aplep&quot;,&quot;bb&quot;,&quot;leapp&quot;,&quot;hello&quot;}
+ * 则输出的单词应为：&quot;aplep&quot;, &quot;leapp&quot;
+ *
+ * 首先用快排对整个字典排序，排序的比较标准是每个单词内部先排好序之后的签名，比如&quot;apple&quot;---&gt;&quot;aelpp&quot;,&quot;dddap&quot;---&gt;&quot;adddp&quot;;
+ * 再用排序之后的字典二分搜索目标单词，找到签名一样的单词，则分别向上，向下找同样签名的单词，并输出；
+ **/
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#define MAX_LEN 20 // 假定每个单词的最大字符数是20
+#define WORD_COUNT 6
+char set[][WORD_COUNT] = {&quot;appl&quot;,&quot;paal&quot;,&quot;aplep&quot;,&quot;bb&quot;,&quot;leapp&quot;,&quot;hello&quot;};
+
+
+// 通过对单词插入排序，获取签名，不要直接传入原数组中的单词，应该传入单词的副本，反正覆盖原数组
+char* sign(char *result) {
+    int j = 0;
+    int i = 1;
+    char tmp = &#39; &#39;;
+    //插入排序
+    while (result[i] != &#39;\0&#39;) {
+        tmp = result[i];
+        for(j = i; j &gt; 0 &amp;&amp; result[j-1] &gt; tmp; j--) {
+            result[j] = result[j-1];
+        }
+        result[j] = tmp;
+        i++;
+    }
+    return result;
+}
+
+//比较两个单词的签名大小
+int compare_by_sign(char *a, char *b) {
+    char sort_a[MAX_LEN];
+    char sort_b[MAX_LEN];
+    strcpy(sort_a, a);
+    strcpy(sort_b, b);
+
+    return strcmp(sign(sort_a), sign(sort_b));
+}
+
+//比较两个单词大小
+int compare(char *a, char *b) {
+    return strcmp(a, b);
+}
+
+//交换原数组中下标为i和j的单词位置
+void swap(int i, int j){
+    if (i == j)
+        return;
+    char tmp[MAX_LEN];
+    strcpy(tmp, set[i]);
+    strcpy(set[i], set[j]);
+    strcpy(set[j], tmp);
+}
+
+// 对原数组按照签名大小，进行快排
+void qsort(int l, int u) {
+    if (l &gt; u)
+        return;
+    int m = l;
+
+    for(int i = l+1; i &lt;= u; i++) {
+        if(compare_by_sign(set[i], set[l]) &lt; 0){
+            swap(i,++m);
+        }
+    }
+    swap(m,l);
+
+    qsort(l, m-1);
+    qsort(m+1, u);
+}
+
+//在排序好的数组中二分查找签名相同的单词，并输出
+void bsearch(int l, int u, char *word_sign, int *is_found) {
+    int mid = (u - l) / 2;
+    if (l &gt; u) {
+        return;
+    }
+    char mid_sign[MAX_LEN];
+    strcpy(mid_sign, set[mid]);
+    sign(mid_sign);
+    int com_result = compare(mid_sign, word_sign);
+    if (com_result &gt; 0)
+        bsearch(l, mid-1, word_sign, is_found);
+    if (com_result &lt; 0)
+        bsearch(mid+1, u, word_sign, is_found);
+    if (com_result == 0){
+        //找到了，开始向下以及向上寻找相同签名的词
+        int flag = mid;
+        printf(&quot;found brother word:\n%s\n&quot;,set[mid]);
+        *is_found = 1;
+        mid--;
+        flag++;
+        //向上找
+        while(mid &gt; 0){
+            if(compare(sign(set[mid]), word_sign) == 0)
+                printf(&quot;%s\n&quot;,set[mid]);
+            else
+                break;
+            mid--;
+        }
+        //向下找
+        while(flag &lt; WORD_COUNT) {
+            if(compare(sign(set[flag]), word_sign) == 0)
+                printf(&quot;%s\n&quot;,set[flag]);
+            else
+                break;
+            flag++;
+        }
+    }
+}
+
+int main() {
+    qsort(0, WORD_COUNT-1); //对原数组排序
+    char des[] = &quot;apple&quot;; //待查找单词
+    char *word_sign;
+    word_sign = sign(des); //待查找单词的签名
+    printf(&quot;sign is: %s\n&quot;, word_sign);
+
+    int is_found = 0; //标记是否找到
+    bsearch(0, WORD_COUNT, sign(des), &amp;is_found); //二分查找
+    if (is_found == 0) { //未找到
+        printf(&quot;%s\n&quot;, &quot;can not found brother word!!&quot;);
+    }
+}
+</code></pre>
+<p>输出为：</p>
+<pre><code class="bash">sign is: aelpp
+found brother word:
+leapp
+aelpp
+</code></pre>
 </section>
     <!-- Tags START -->
     
@@ -211,7 +345,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/12/27/brother-word/';
+    var url = 'http://ayonel.github.io/2016/12/27/brother-word/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -264,15 +398,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "寻找变位词",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -295,7 +429,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/12/27/brother-word/';
+  var disqus_url = 'http://ayonel.github.io/2016/12/27/brother-word/';
   
   (function(){
     var dsq = document.createElement('script');

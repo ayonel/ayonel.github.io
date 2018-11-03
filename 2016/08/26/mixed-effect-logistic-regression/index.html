@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -156,8 +156,17 @@
 <p>A large HMO wants to know what patient and physician factors are most related to whether a patient’s lung cancer goes into remission after treatment as part of a larger study of treatment outcomes and quality of life in patients with lunger cancer.</p>
 </blockquote>
 <p>一个医疗机构想要知道对于骨瘤是否最终治愈，医生和病人之间哪种属性是影响最大的。比如医生的属性：从业经验，学历等等。病人的属性有骨瘤大小，患病时间，性别等等。 我们现在就会有一组样本：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">s_cured    doctor  experience    education    patient    tumour_size    tumour_time    patient_sex</span><br><span class="line">   1         Bob      10            1          jav          3              2                 0    </span><br><span class="line">   0         Bob      10            1          hex          4              1                 1</span><br><span class="line">   1         Bob      10            1          lancy        6              4                 0</span><br><span class="line">   1         Jack     5             3          joogh        1              2                 0    </span><br><span class="line">   0         Jack     5             3          silla        4              1                 1</span><br><span class="line">   0         Jack     5             3          grecy        6              4                 0</span><br><span class="line">   1         Jack     5             2          lori         2              2                 0    </span><br><span class="line">   0         Bob      10            2          carl         5              1                 1</span><br><span class="line">   1         Bob      10            2          sharun       6              4                 0</span><br></pre></td></tr></table></figure>
-<p>我们现在有这组数据，我们现在要预测一个骨瘤病人能否治愈。<br>普通的多元线性逻辑回归会把每一组样本看成独立的，也就是样本之间是完全独立的，但是实际中我们可以看到，这些样本之间其实是聚集分布的，它们并不是完全独立。同为Bob医生的样本之间肯定存在某种关联，同为Jack医生的样本之间也肯定存在关联。多元混合效应逻辑回归就是加入一个随机效应(上面这个例子中就是doctor),弥补了普通线性回归视样本之间并不存在关联的不足。</p>
+<pre><code>s_cured    doctor  experience    education    patient    tumour_size    tumour_time    patient_sex
+   1         Bob      10            1          jav          3              2                 0    
+   0         Bob      10            1          hex          4              1                 1
+   1         Bob      10            1          lancy        6              4                 0
+   1         Jack     5             3          joogh        1              2                 0    
+   0         Jack     5             3          silla        4              1                 1
+   0         Jack     5             3          grecy        6              4                 0
+   1         Jack     5             2          lori         2              2                 0    
+   0         Bob      10            2          carl         5              1                 1
+   1         Bob      10            2          sharun       6              4                 0
+</code></pre><p>我们现在有这组数据，我们现在要预测一个骨瘤病人能否治愈。<br>普通的多元线性逻辑回归会把每一组样本看成独立的，也就是样本之间是完全独立的，但是实际中我们可以看到，这些样本之间其实是聚集分布的，它们并不是完全独立。同为Bob医生的样本之间肯定存在某种关联，同为Jack医生的样本之间也肯定存在关联。多元混合效应逻辑回归就是加入一个随机效应(上面这个例子中就是doctor),弥补了普通线性回归视样本之间并不存在关联的不足。</p>
 <p>混合效应线性回归更加贴近于真实的世界环境。UCLA有十分棒的<a href="http://www.ats.ucla.edu/stat/r/dae/melogit.htm" target="_blank" rel="noopener">教程</a>，大家可以去读一读。<br>那么如何在R里面使用混合效应回归呢？我们以混合效应逻辑为例。</p>
 <ul>
 <li><p>读入数据：<br><code>&gt;data &lt;- csv.read(&quot;data.csv&quot;)</code><br>对数据中的计数类型（比如年龄啊，从业经验啊等等）进行正规化。为什么需要正规化，请自行谷歌。<br><code>&gt;pvar &lt;- c(&quot;experience&quot;,&quot;education&quot;,&quot;tumour_size,tumour_time&quot;) &gt;datsc -&lt; data &gt;datasc[pvar] &lt;- lapply(datasc[pvar], scale) //正规化</code></p>
@@ -226,7 +235,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/08/26/mixed-effect-logistic-regression/';
+    var url = 'http://ayonel.github.io/2016/08/26/mixed-effect-logistic-regression/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -279,15 +288,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "使用R语言进行多元混合效应逻辑回归",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -310,7 +319,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/08/26/mixed-effect-logistic-regression/';
+  var disqus_url = 'http://ayonel.github.io/2016/08/26/mixed-effect-logistic-regression/';
   
   (function(){
     var dsq = document.createElement('script');

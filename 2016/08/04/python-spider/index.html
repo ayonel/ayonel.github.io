@@ -3,7 +3,7 @@
   <head><meta name="generator" content="Hexo 3.8.0">
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
-  <meta name="description" content="ayonel&#39;s blog">
+  <meta name="description" content="ayonel的个人博客">
   <meta name="keyword" content="ayonel">
   
     <link rel="shortcut icon" href="/css/images/logo.png">
@@ -148,10 +148,61 @@
   <!-- Article START -->
   <article class="post-article">
     <section class="markdown-content"><p>&#160; &#160; &#160; &#160;一款产品发布，其初始用户量很小，这时就需要伪造一批用户来增加平台的用户量，搭起初步的用户生态系统。那么伪造用户时，我们必然需要网名以及头像（也有可能需要签名）等等信息。所以前些日子写了个小爬虫来爬取一批（30000+）网名及头像。<br>&#160; &#160; &#160; &#160;对于头像的爬取，我选择的站点是<a href="http://www.woyaogexing.com" target="_blank" rel="noopener">我要个性网</a>，它的图片都没有做防盗链，因此我只需要爬它图片的url就行。对于昵称，我选择的网站是<a href="http://www.oicq88.com" target="_blank" rel="noopener">QQ网名</a>。选择好爬取目标，就需要咱的爬虫登场了。以前爬虫经常用scrapy，但对于我这次的量显然是杀鸡用牛刀。这个爬虫是利用python自带的urllib2，解析网页用的是BeautifulSoup(可用pip安装)，与xpath原理类似。<br>&#160; &#160; &#160; &#160;下面是头像爬虫源码，代码很简单：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># coding:utf-8</span><br><span class="line">import time</span><br><span class="line">import urllib2</span><br><span class="line">import random</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line">def filter(tag):</span><br><span class="line">    if cmp(tag.name, &apos;img&apos;) == 0:</span><br><span class="line">        if tag.has_attr(&apos;class&apos;):</span><br><span class="line">            if cmp(tag[&apos;class&apos;][0], &apos;lazy&apos; == 0):</span><br><span class="line">                return True</span><br><span class="line"></span><br><span class="line">outfile = open(&quot;./20160717/avatar.txt&quot;, &quot;a&quot;)</span><br><span class="line"></span><br><span class="line">for i in range(135, 1500):</span><br><span class="line">    print i</span><br><span class="line">    url = &apos;http://www.woyaogexing.com/touxiang/index_&apos;+str(i)+&apos;.html&apos;</span><br><span class="line">    response = urllib2.urlopen(url)</span><br><span class="line">    data = response.read()</span><br><span class="line">    soup = BeautifulSoup(data, &quot;lxml&quot;)</span><br><span class="line">    imgs = soup.find_all(filter)</span><br><span class="line"></span><br><span class="line">    for img in imgs:</span><br><span class="line">        outfile.write(img[&apos;src&apos;] + &apos;,&apos; + str(random.randint(0, 1))+ &apos;\n&apos;)</span><br><span class="line">    time.sleep(0.5)</span><br></pre></td></tr></table></figure>
-<p>&#160; &#160; &#160; &#160;最后输出的时候在每个头像url后面接了个随机的0或者1，这是用随机数来标志这个人是男生还是女生。<br>下面是爬取昵称的爬虫：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"># coding:utf-8</span><br><span class="line">import sys</span><br><span class="line">reload(sys)</span><br><span class="line">sys.setdefaultencoding(&quot;utf-8&quot;)</span><br><span class="line"></span><br><span class="line">import urllib2</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line">def filter(tag):#解析包含网名的标签</span><br><span class="line">    if cmp(tag.name, &quot;ul&quot;) == 0:</span><br><span class="line">        if tag.has_attr(&quot;class&quot;):</span><br><span class="line">            if cmp(tag[&apos;class&apos;][0], &apos;list&apos;) == 0:</span><br><span class="line">                return True</span><br><span class="line"></span><br><span class="line">outfile = open(&quot;./name.txt&quot;, &quot;a&quot;)#输出文件</span><br><span class="line"></span><br><span class="line">for i in range(55, 145):</span><br><span class="line">    print i</span><br><span class="line">    url = &apos;http://www.oicq88.com/nvsheng/&apos;+str(i)+&apos;.htm&apos;</span><br><span class="line">    response = urllib2.urlopen(url)#/nvsheng/可以替换为其他的</span><br><span class="line">    data = response.read()</span><br><span class="line">    soup = BeautifulSoup(data, &quot;lxml&quot;)</span><br><span class="line">    ul = soup.find_all(filter)</span><br><span class="line">    ulsoup = BeautifulSoup(str(ul[0]), &quot;lxml&quot;)</span><br><span class="line">    lis = ulsoup.find_all(&quot;li&quot;)</span><br><span class="line"></span><br><span class="line">    for li in lis:</span><br><span class="line">        outfile.write(str(li.p.text)+&apos;\n&apos;)</span><br></pre></td></tr></table></figure>
-<p>可以直接复制源码进行爬取，前提是<code>我要个性网</code>以及<code>QQ网名</code>的前端页面没变，为了防止这种情况发生，文末我会附上爬取的源文件链接，大家可以自行下载。<br>文件下载链接：<a href="https://ayonel.me/files/name_avatar_over.zip" target="_blank" rel="noopener">https://ayonel.me/files/name_avatar_over.zip</a></p>
+<pre><code># coding:utf-8
+import time
+import urllib2
+import random
+from bs4 import BeautifulSoup
+
+def filter(tag):
+    if cmp(tag.name, &#39;img&#39;) == 0:
+        if tag.has_attr(&#39;class&#39;):
+            if cmp(tag[&#39;class&#39;][0], &#39;lazy&#39; == 0):
+                return True
+
+outfile = open(&quot;./20160717/avatar.txt&quot;, &quot;a&quot;)
+
+for i in range(135, 1500):
+    print i
+    url = &#39;http://www.woyaogexing.com/touxiang/index_&#39;+str(i)+&#39;.html&#39;
+    response = urllib2.urlopen(url)
+    data = response.read()
+    soup = BeautifulSoup(data, &quot;lxml&quot;)
+    imgs = soup.find_all(filter)
+
+    for img in imgs:
+        outfile.write(img[&#39;src&#39;] + &#39;,&#39; + str(random.randint(0, 1))+ &#39;\n&#39;)
+    time.sleep(0.5)
+</code></pre><p>&#160; &#160; &#160; &#160;最后输出的时候在每个头像url后面接了个随机的0或者1，这是用随机数来标志这个人是男生还是女生。<br>下面是爬取昵称的爬虫：</p>
+<pre><code># coding:utf-8
+import sys
+reload(sys)
+sys.setdefaultencoding(&quot;utf-8&quot;)
+
+import urllib2
+from bs4 import BeautifulSoup
+
+def filter(tag):#解析包含网名的标签
+    if cmp(tag.name, &quot;ul&quot;) == 0:
+        if tag.has_attr(&quot;class&quot;):
+            if cmp(tag[&#39;class&#39;][0], &#39;list&#39;) == 0:
+                return True
+
+outfile = open(&quot;./name.txt&quot;, &quot;a&quot;)#输出文件
+
+for i in range(55, 145):
+    print i
+    url = &#39;http://www.oicq88.com/nvsheng/&#39;+str(i)+&#39;.htm&#39;
+    response = urllib2.urlopen(url)#/nvsheng/可以替换为其他的
+    data = response.read()
+    soup = BeautifulSoup(data, &quot;lxml&quot;)
+    ul = soup.find_all(filter)
+    ulsoup = BeautifulSoup(str(ul[0]), &quot;lxml&quot;)
+    lis = ulsoup.find_all(&quot;li&quot;)
+
+    for li in lis:
+        outfile.write(str(li.p.text)+&#39;\n&#39;)
+</code></pre><p>可以直接复制源码进行爬取，前提是<code>我要个性网</code>以及<code>QQ网名</code>的前端页面没变，为了防止这种情况发生，文末我会附上爬取的源文件链接，大家可以自行下载。<br>文件下载链接：<a href="https://ayonel.me/files/name_avatar_over.zip" target="_blank" rel="noopener">https://ayonel.me/files/name_avatar_over.zip</a></p>
 </section>
     <!-- Tags START -->
     
@@ -209,7 +260,7 @@
 
 <script>
   (function () {
-    var url = 'http://yoursite.com/2016/08/04/python-spider/';
+    var url = 'http://ayonel.github.io/2016/08/04/python-spider/';
     var banner = ''
     if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
       $('#article-banner').css({
@@ -262,15 +313,15 @@
     });
 
     // gitment
-    var gitmentConfig = "yanm1ng";
+    var gitmentConfig = "ayonel";
     if (gitmentConfig !== 'undefined') {
       var gitment = new Gitment({
         id: "python小爬虫---爬取网名及头像",
-        owner: "yanm1ng",
-        repo: "yanm1ng.github.io",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
         oauth: {
-          client_id: "0f87e490e00ee3fd87ef",
-          client_secret: "4a9d2b148e7971c2201ad12131ce8bf8159ccd2e"
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
         },
         theme: {
           render(state, instance) {
@@ -293,7 +344,7 @@
 <script>
   var disqus_shortname = '';
   
-  var disqus_url = 'http://yoursite.com/2016/08/04/python-spider/';
+  var disqus_url = 'http://ayonel.github.io/2016/08/04/python-spider/';
   
   (function(){
     var dsq = document.createElement('script');
