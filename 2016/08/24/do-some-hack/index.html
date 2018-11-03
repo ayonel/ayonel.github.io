@@ -155,7 +155,7 @@
 <blockquote>
 <p><strong>0x01 先来点小测试</strong> </p>
 </blockquote>
-<p>本来还想先从找出管理员登录页面开始，都已经下好了路径扫描工具。但是当时耶稣的光芒照亮了我，手抖了一下，在目标域名后接了个‘/admin’,就直接跳转到管理员登录页面了，无语。。。。<br><img src="/2016/08/24/do-some-hack/881F332B-CB90-4D8B-907A-024CD7E1BF47-300x147.jpg" alt="881F332B-CB90-4D8B-907A-024CD7E1BF47"><br>这一下就令偶信心大增，有简单测了一下，验证码是挂了，多次提交验证码不会刷新，这简直是爽的不要不要啊。并且对管理员用户名的正确与否还有提示，简直了。。。<br>输入错误的管理员用户名，会提示:<br><img src="/2016/08/24/do-some-hack/2643AB97-03F2-412B-8C89-0D08923E9353-300x55.jpg" alt="2643AB97-03F2-412B-8C89-0D08923E9353"><br>在管理员处输入admin,则提示：<br><img src="/2016/08/24/do-some-hack/admin-300x62.jpg" alt="admin"><br>这后台还真是贴心啊。 </p>
+<p>本来还想先从找出管理员登录页面开始，都已经下好了路径扫描工具。但是当时耶稣的光芒照亮了我，手抖了一下，在目标域名后接了个‘/admin’,就直接跳转到管理员登录页面了，无语。。。。<br><img src="/2016/08/24/do-some-hack/881F332B-CB90-4D8B-907A-024CD7E1BF47.jpg" alt="881F332B-CB90-4D8B-907A-024CD7E1BF47"><br>这一下就令偶信心大增，有简单测了一下，验证码是挂了，多次提交验证码不会刷新，这简直是爽的不要不要啊。并且对管理员用户名的正确与否还有提示，简直了。。。<br>输入错误的管理员用户名，会提示:<br><img src="/2016/08/24/do-some-hack/2643AB97-03F2-412B-8C89-0D08923E9353.jpg" alt="2643AB97-03F2-412B-8C89-0D08923E9353"><br>在管理员处输入admin,则提示：<br><img src="/2016/08/24/do-some-hack/admin.jpg" alt="admin"><br>这后台还真是贴心啊。 </p>
 <blockquote>
 <p><strong>0x02 burpsuite登场</strong></p>
 </blockquote>
@@ -163,7 +163,7 @@
 <blockquote>
 <p><strong>0x03 找出后台框架</strong> </p>
 </blockquote>
-<p>邮件审查了一下管理员登录页面的源码，<br><img src="/2016/08/24/do-some-hack/AF454890-A7B2-4C71-9C7F-3B46DF157715-300x71.jpg" alt="AF454890-A7B2-4C71-9C7F-3B46DF157715"> 表单提交模块名是xdcms，大概百度了一下，这是一个php写的cms，在我大乌云(天佑我乌云, 世纪佳缘不要碧莲)上找了一番，这框架简直惨不忍睹啊，翻了几页都没翻完。 </p>
+<p>邮件审查了一下管理员登录页面的源码，<br><img src="/2016/08/24/do-some-hack/AF454890-A7B2-4C71-9C7F-3B46DF157715.jpg" alt="AF454890-A7B2-4C71-9C7F-3B46DF157715"> 表单提交模块名是xdcms，大概百度了一下，这是一个php写的cms，在我大乌云(天佑我乌云, 世纪佳缘不要碧莲)上找了一番，这框架简直惨不忍睹啊，翻了几页都没翻完。 </p>
 <blockquote>
 <p><strong>0x04 Sql注入</strong> </p>
 </blockquote>
@@ -173,7 +173,7 @@
 <span class="string">        FROM c_admin LIMIT 0,1))a FROM information_schema.tables GROUP </span>
 <span class="string">            by a)b# </span>
 </code></pre>
-<p>密码随意填，写上验证码，点击登录：<br><img src="/2016/08/24/do-some-hack/result-300x40.jpg" alt="result"><br>可以看到已经爆出了加密的管理员密码，这个密码是两层md5加密。 </p>
+<p>密码随意填，写上验证码，点击登录：<br><img src="/2016/08/24/do-some-hack/result.jpg" alt="result"><br>可以看到已经爆出了加密的管理员密码，这个密码是两层md5加密。 </p>
 <blockquote>
 <p><strong>0x05 万能的淘宝</strong> </p>
 </blockquote>
