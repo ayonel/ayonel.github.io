@@ -147,22 +147,9 @@
 <main class="app-body flex-box">
   <!-- Article START -->
   <article class="post-article">
-    <section class="markdown-content"><p>&#160; &#160; &#160; &#160;现在博客正式从aws上迁移到<a href="http://malash.me" target="_blank" rel="noopener">malash</a>的服务器上。嘻嘻，以后再也不用花钱啦~~<br>&#160; &#160; &#160; &#160;然后malash跟我强行装了“用两句Haskell实现快排”的逼。确实感觉到函数式编程无限的想象力。 Haskell如何写，具体忘了，下面是Python的实现，原理类似。</p>
-<pre><code>def sort(arr):
-    if len(arr) == 0:
-        return []
-    x = arr.pop(0)
-    return sort(filter(lambda a : a &lt; x ,arr)) + [x] + sort(filter( lambda a : a &gt; x, arr))
-</code></pre><p>&#160; &#160; &#160; &#160;<strong>整个世界清净了，这确实是快排~~</strong><br>下面是一个不怎么”函数式”的实现，代码还是很简单，并且很直观！</p>
-<pre><code>def quicksort(arr):
-    if len(arr) &lt;= 1:
-        return arr
-    pivot = arr[len(arr) / 2]
-    left = [x for x in arr if x &lt; pivot]
-    middle = [x for x in arr if x == pivot]
-    right = [x for x in arr if x &gt; pivot]
-    return quicksort(left) + middle + quicksort(right)
-</code></pre></section>
+    <section class="markdown-content"><p>&#160; &#160; &#160; &#160;现在博客正式从aws上迁移到<a href="http://malash.me" target="_blank" rel="noopener">malash</a>的服务器上。嘻嘻，以后再也不用花钱啦~~<br>&#160; &#160; &#160; &#160;然后malash跟我强行装了“用两句Haskell实现快排”的逼。确实感觉到函数式编程无限的想象力。 Haskell如何写，具体忘了，下面是Python的实现，原理类似。<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">def <span class="built_in">sort</span>(arr):</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(arr) == <span class="number">0</span>:</span><br><span class="line">        <span class="literal">return</span> []</span><br><span class="line">    x = arr.pop(<span class="number">0</span>)</span><br><span class="line">    <span class="literal">return</span> <span class="built_in">sort</span>(<span class="built_in">filter</span>(lambda <span class="keyword">a</span> : <span class="keyword">a</span> &lt; x ,arr)) + [x] + <span class="built_in">sort</span>(<span class="built_in">filter</span>( lambda <span class="keyword">a</span> : <span class="keyword">a</span> &gt; x, arr))</span><br></pre></td></tr></table></figure></p>
+<p>&#160; &#160; &#160; &#160;<strong>整个世界清净了，这确实是快排~~</strong><br>下面是一个不怎么”函数式”的实现，代码还是很简单，并且很直观！<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def quicksort(arr):</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(arr) &lt;= <span class="number">1</span>:</span><br><span class="line">        <span class="literal">return</span> arr</span><br><span class="line">    pivot = arr[<span class="built_in">len</span>(arr) / <span class="number">2</span>]</span><br><span class="line">    left = [x <span class="keyword">for</span> x <span class="keyword">in</span> arr <span class="keyword">if</span> x &lt; pivot]</span><br><span class="line">    <span class="keyword">middle</span> = [x <span class="keyword">for</span> x <span class="keyword">in</span> arr <span class="keyword">if</span> x == pivot]</span><br><span class="line">    <span class="literal">right</span> = [x <span class="keyword">for</span> x <span class="keyword">in</span> arr <span class="keyword">if</span> x &gt; pivot]</span><br><span class="line">    <span class="literal">return</span> quicksort(left) + <span class="keyword">middle</span> + quicksort(<span class="literal">right</span>)</span><br></pre></td></tr></table></figure></p>
+</section>
     <!-- Tags START -->
     
       <div class="tags">

@@ -148,61 +148,10 @@
   <!-- Article START -->
   <article class="post-article">
     <section class="markdown-content"><p>&#160; &#160; &#160; &#160;一款产品发布，其初始用户量很小，这时就需要伪造一批用户来增加平台的用户量，搭起初步的用户生态系统。那么伪造用户时，我们必然需要网名以及头像（也有可能需要签名）等等信息。所以前些日子写了个小爬虫来爬取一批（30000+）网名及头像。<br>&#160; &#160; &#160; &#160;对于头像的爬取，我选择的站点是<a href="http://www.woyaogexing.com" target="_blank" rel="noopener">我要个性网</a>，它的图片都没有做防盗链，因此我只需要爬它图片的url就行。对于昵称，我选择的网站是<a href="http://www.oicq88.com" target="_blank" rel="noopener">QQ网名</a>。选择好爬取目标，就需要咱的爬虫登场了。以前爬虫经常用scrapy，但对于我这次的量显然是杀鸡用牛刀。这个爬虫是利用python自带的urllib2，解析网页用的是BeautifulSoup(可用pip安装)，与xpath原理类似。<br>&#160; &#160; &#160; &#160;下面是头像爬虫源码，代码很简单：</p>
-<pre><code># coding:utf-8
-import time
-import urllib2
-import random
-from bs4 import BeautifulSoup
-
-def filter(tag):
-    if cmp(tag.name, &#39;img&#39;) == 0:
-        if tag.has_attr(&#39;class&#39;):
-            if cmp(tag[&#39;class&#39;][0], &#39;lazy&#39; == 0):
-                return True
-
-outfile = open(&quot;./20160717/avatar.txt&quot;, &quot;a&quot;)
-
-for i in range(135, 1500):
-    print i
-    url = &#39;http://www.woyaogexing.com/touxiang/index_&#39;+str(i)+&#39;.html&#39;
-    response = urllib2.urlopen(url)
-    data = response.read()
-    soup = BeautifulSoup(data, &quot;lxml&quot;)
-    imgs = soup.find_all(filter)
-
-    for img in imgs:
-        outfile.write(img[&#39;src&#39;] + &#39;,&#39; + str(random.randint(0, 1))+ &#39;\n&#39;)
-    time.sleep(0.5)
-</code></pre><p>&#160; &#160; &#160; &#160;最后输出的时候在每个头像url后面接了个随机的0或者1，这是用随机数来标志这个人是男生还是女生。<br>下面是爬取昵称的爬虫：</p>
-<pre><code># coding:utf-8
-import sys
-reload(sys)
-sys.setdefaultencoding(&quot;utf-8&quot;)
-
-import urllib2
-from bs4 import BeautifulSoup
-
-def filter(tag):#解析包含网名的标签
-    if cmp(tag.name, &quot;ul&quot;) == 0:
-        if tag.has_attr(&quot;class&quot;):
-            if cmp(tag[&#39;class&#39;][0], &#39;list&#39;) == 0:
-                return True
-
-outfile = open(&quot;./name.txt&quot;, &quot;a&quot;)#输出文件
-
-for i in range(55, 145):
-    print i
-    url = &#39;http://www.oicq88.com/nvsheng/&#39;+str(i)+&#39;.htm&#39;
-    response = urllib2.urlopen(url)#/nvsheng/可以替换为其他的
-    data = response.read()
-    soup = BeautifulSoup(data, &quot;lxml&quot;)
-    ul = soup.find_all(filter)
-    ulsoup = BeautifulSoup(str(ul[0]), &quot;lxml&quot;)
-    lis = ulsoup.find_all(&quot;li&quot;)
-
-    for li in lis:
-        outfile.write(str(li.p.text)+&#39;\n&#39;)
-</code></pre><p>可以直接复制源码进行爬取，前提是<code>我要个性网</code>以及<code>QQ网名</code>的前端页面没变，为了防止这种情况发生，文末我会附上爬取的源文件链接，大家可以自行下载。<br>文件下载链接：<a href="https://ayonel.me/files/name_avatar_over.zip" target="_blank" rel="noopener">https://ayonel.me/files/name_avatar_over.zip</a></p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># codin<span class="variable">g:utf</span>-<span class="number">8</span></span><br><span class="line">import time</span><br><span class="line">import urllib2</span><br><span class="line">import random</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line">def <span class="built_in">filter</span>(<span class="keyword">tag</span>):</span><br><span class="line">    <span class="keyword">if</span> cmp(<span class="keyword">tag</span>.name, <span class="string">'img'</span>) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">tag</span>.has_attr(<span class="string">'class'</span>):</span><br><span class="line">            <span class="keyword">if</span> cmp(<span class="keyword">tag</span>[<span class="string">'class'</span>][<span class="number">0</span>], <span class="string">'lazy'</span> == <span class="number">0</span>):</span><br><span class="line">                <span class="keyword">return</span> True</span><br><span class="line"></span><br><span class="line">outfile = <span class="keyword">open</span>(<span class="string">"./20160717/avatar.txt"</span>, <span class="string">"a"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i in <span class="built_in">range</span>(<span class="number">135</span>, <span class="number">1500</span>):</span><br><span class="line">    <span class="keyword">print</span> i</span><br><span class="line">    url = <span class="string">'http://www.woyaogexing.com/touxiang/index_'</span>+str(i)+<span class="string">'.html'</span></span><br><span class="line">    response = urllib2.urlopen(url)</span><br><span class="line">    data = response.<span class="keyword">read</span>()</span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">"lxml"</span>)</span><br><span class="line">    imgs = soup.find_all(<span class="built_in">filter</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> img in img<span class="variable">s:</span></span><br><span class="line">        outfile.<span class="keyword">write</span>(img[<span class="string">'src'</span>] + <span class="string">','</span> + str(random.randint(<span class="number">0</span>, <span class="number">1</span>))+ <span class="string">'\n'</span>)</span><br><span class="line">    time.<span class="keyword">sleep</span>(<span class="number">0.5</span>)</span><br></pre></td></tr></table></figure>
+<p>&#160; &#160; &#160; &#160;最后输出的时候在每个头像url后面接了个随机的0或者1，这是用随机数来标志这个人是男生还是女生。<br>下面是爬取昵称的爬虫：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">reload(sys)</span><br><span class="line">sys.setdefaultencoding(<span class="string">"utf-8"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> urllib2</span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filter</span><span class="params">(tag)</span>:</span><span class="comment">#解析包含网名的标签</span></span><br><span class="line">    <span class="keyword">if</span> cmp(tag.name, <span class="string">"ul"</span>) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">if</span> tag.has_attr(<span class="string">"class"</span>):</span><br><span class="line">            <span class="keyword">if</span> cmp(tag[<span class="string">'class'</span>][<span class="number">0</span>], <span class="string">'list'</span>) == <span class="number">0</span>:</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">True</span></span><br><span class="line"></span><br><span class="line">outfile = open(<span class="string">"./name.txt"</span>, <span class="string">"a"</span>)<span class="comment">#输出文件</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">55</span>, <span class="number">145</span>):</span><br><span class="line">    <span class="keyword">print</span> i</span><br><span class="line">    url = <span class="string">'http://www.oicq88.com/nvsheng/'</span>+str(i)+<span class="string">'.htm'</span></span><br><span class="line">    response = urllib2.urlopen(url)<span class="comment">#/nvsheng/可以替换为其他的</span></span><br><span class="line">    data = response.read()</span><br><span class="line">    soup = BeautifulSoup(data, <span class="string">"lxml"</span>)</span><br><span class="line">    ul = soup.find_all(filter)</span><br><span class="line">    ulsoup = BeautifulSoup(str(ul[<span class="number">0</span>]), <span class="string">"lxml"</span>)</span><br><span class="line">    lis = ulsoup.find_all(<span class="string">"li"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> li <span class="keyword">in</span> lis:</span><br><span class="line">        outfile.write(str(li.p.text)+<span class="string">'\n'</span>)</span><br></pre></td></tr></table></figure>
+<p>可以直接复制源码进行爬取，前提是<code>我要个性网</code>以及<code>QQ网名</code>的前端页面没变，为了防止这种情况发生，文末我会附上爬取的源文件链接，大家可以自行下载。<br>文件下载链接：<a href="https://ayonel.me/files/name_avatar_over.zip" target="_blank" rel="noopener">https://ayonel.me/files/name_avatar_over.zip</a></p>
 </section>
     <!-- Tags START -->
     

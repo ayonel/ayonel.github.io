@@ -149,11 +149,9 @@
   <article class="post-article">
     <section class="markdown-content"><p>scipy是python下的一个数值计算工具包，sklearn依赖于这个包。当我调用sklearn的<code>CountVectorizer</code>时，提示没有发现包scipy，直接安装又总是失败。   </p>
 <p>问题就在于 scipy的安装需要依赖很多别的包，在windows这个蛋疼的平台下极有可能安装失败。并且在windows上scipy的安装依赖于mkl+numpy这个包。这个包官方并没有提供，而在<a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy" target="_blank" rel="noopener">http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy</a>这里面有提供。  </p>
-<p>我的python是3.5,64位。 所以我选择<code>numpy-1.12.0b1+mkl-cp35-cp35m-win\_amd64.whl</code>和<code>scipy-0.18.1-cp35-cp35m-win\_amd64.whl</code>这两个文件。cp35代表python3.5,其他版本要选择其他对应的文件。下载好之后先用pip 安装numpy+mkl：</p>
-<pre><code>pip install numpy-1.12.0b1+mkl-cp35-cp35m-win_amd64.whl
-</code></pre><p>再安装scipy： </p>
-<pre><code>pip install scipy-0.18.1-cp35-cp35m-win_amd64.whl
-</code></pre><p>大功告成。<br><img src="/2016/11/25/windows-install-scipy/pip.png" alt="pip"> 不过这个网址<code>http://www.lfd.uci.edu/~gohlke/pythonlibs/</code>是在国外，下载起来速度简直是龟速。我把我安装的这个两个文件已经上传到百度云了。另外还有32位的，有需要的同学可以自行下载。<br>分享链接：<a href="http://pan.baidu.com/s/1miloOe0" target="_blank" rel="noopener">http://pan.baidu.com/s/1miloOe0</a> 密码：<strong>edo4</strong></p>
+<p>我的python是3.5,64位。 所以我选择<code>numpy-1.12.0b1+mkl-cp35-cp35m-win\_amd64.whl</code>和<code>scipy-0.18.1-cp35-cp35m-win\_amd64.whl</code>这两个文件。cp35代表python3.5,其他版本要选择其他对应的文件。下载好之后先用pip 安装numpy+mkl：<br><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">pip</span> <span class="selector-tag">install</span> <span class="selector-tag">numpy-1</span><span class="selector-class">.12</span><span class="selector-class">.0b1</span>+<span class="selector-tag">mkl-cp35-cp35m-win_amd64</span><span class="selector-class">.whl</span></span><br></pre></td></tr></table></figure></p>
+<p>再安装scipy：<br><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">pip</span> <span class="selector-tag">install</span> <span class="selector-tag">scipy-0</span><span class="selector-class">.18</span><span class="selector-class">.1-cp35-cp35m-win_amd64</span><span class="selector-class">.whl</span></span><br></pre></td></tr></table></figure></p>
+<p>大功告成。<br><img src="/2016/11/25/windows-install-scipy/pip.png" alt="pip"> 不过这个网址<code>http://www.lfd.uci.edu/~gohlke/pythonlibs/</code>是在国外，下载起来速度简直是龟速。我把我安装的这个两个文件已经上传到百度云了。另外还有32位的，有需要的同学可以自行下载。<br>分享链接：<a href="http://pan.baidu.com/s/1miloOe0" target="_blank" rel="noopener">http://pan.baidu.com/s/1miloOe0</a> 密码：<strong>edo4</strong></p>
 </section>
     <!-- Tags START -->
     
