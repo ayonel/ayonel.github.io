@@ -1,0 +1,56 @@
+author: ayonel # 作者
+description: ayonel's blog
+keyword: ayonel
+favicon: 
+
+excerpt_link: Read more
+
+menu:
+ 主页: /
+ 标签: /tags/
+ 博文: /archives/
+ 项目: /project/
+ 关于我: /about/
+
+# highlight
+highlight:
+  tomorrow
+
+# catalog
+catalog: true
+
+# donate
+donate: true
+
+# qrcode
+qrcode: true
+
+# comment
+# you can set gitment, uyan or disqus
+
+comment: gitment
+
+# gitment config
+gitment_owner: ayonel
+gitment_repo: ayonel.github.io
+gitment_oauth_id: 297b1b500bab1bb05f84
+gitment_oauth_secret: d95e804528ebcd238086be5bf2cc5f3884269bc7
+
+# uyan config
+# if you want to use uyan as your blog comment, plz remove/comment out gitment config
+baidu_id: 
+
+# disqus config
+disqus_shortname: 
+
+about: 
+  banner: http://file.muyutech.com/about.jpg
+  avatar: https://raw.githubusercontent.com/ayonel/ayonel.github.io/master/css/images/avatar.jpg
+  description: "Life is always sweet~"
+  github_username: ayonel
+
+# MathJax Support
+mathjax:
+  enable: true
+  per_page: false
+  cdn: //cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML
