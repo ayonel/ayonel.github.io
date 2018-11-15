@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c4cae734-4431-420d-ad3e-e0466cbc4797" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/themes/vexo/source/css/images/avatar.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/vexo/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/themes/vexo/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/vexo/_config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/themes/vexo/_config.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/vexo/layout/_partial/footer.ejs" beforeDir="false" afterPath="$PROJECT_DIR$/themes/vexo/layout/_partial/footer.ejs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/vexo/layout/page.ejs" beforeDir="false" afterPath="$PROJECT_DIR$/themes/vexo/layout/page.ejs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/vexo/source/css/images/alipay.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/vexo/source/css/images/wechat.jpg" beforeDir="false" />
-    </list>
+    <list default="true" id="c4cae734-4431-420d-ad3e-e0466cbc4797" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -115,8 +107,17 @@
       <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="6" column="9" lean-forward="true" selection-start-line="6" selection-start-column="9" selection-end-line="6" selection-end-column="9" />
+            <state relative-caret-position="140">
+              <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/themes/vexo/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="60">
+              <caret line="3" column="5" lean-forward="true" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -158,7 +159,7 @@
     </findStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/themes/vexo" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -194,6 +195,7 @@
         <option value="$PROJECT_DIR$/source/_posts/changes-for-tp5.md" />
         <option value="$PROJECT_DIR$/source/_posts/brother-word.md" />
         <option value="$PROJECT_DIR$/_config.yml" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -248,15 +250,7 @@
               <item name="ayonel.github.io" type="462c0819:PsiDirectoryNode" />
               <item name="themes" type="462c0819:PsiDirectoryNode" />
               <item name="vexo" type="462c0819:PsiDirectoryNode" />
-              <item name="layout" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="ayonel.github.io" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ayonel.github.io" type="462c0819:PsiDirectoryNode" />
-              <item name="themes" type="462c0819:PsiDirectoryNode" />
-              <item name="vexo" type="462c0819:PsiDirectoryNode" />
-              <item name="layout" type="462c0819:PsiDirectoryNode" />
-              <item name="_partial" type="462c0819:PsiDirectoryNode" />
+              <item name="source" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ayonel.github.io" type="b2602c69:ProjectViewProjectNode" />
@@ -264,6 +258,7 @@
               <item name="themes" type="462c0819:PsiDirectoryNode" />
               <item name="vexo" type="462c0819:PsiDirectoryNode" />
               <item name="source" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -318,12 +313,12 @@
       <workItem from="1541139031348" duration="5144000" />
       <workItem from="1541161385522" duration="20219000" />
       <workItem from="1541406921095" duration="389000" />
-      <workItem from="1542254171087" duration="249000" />
+      <workItem from="1542254171087" duration="503000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="26001000" />
+    <option name="totallyTimeSpent" value="26255000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-2560" y="-237" width="2560" height="1440" extended-state="0" />
@@ -355,16 +350,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/source/_posts/changes-for-tp5.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="160">
-            <caret line="8" column="7" selection-start-line="8" selection-start-column="7" selection-end-line="8" selection-end-column="7" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/_posts/scrapy-for-github.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
@@ -741,10 +726,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/themes/vexo/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="3" column="5" lean-forward="true" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="6" column="9" lean-forward="true" selection-start-line="6" selection-start-column="9" selection-end-line="6" selection-end-column="9" />
+        <state relative-caret-position="140">
+          <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
         </state>
       </provider>
     </entry>
