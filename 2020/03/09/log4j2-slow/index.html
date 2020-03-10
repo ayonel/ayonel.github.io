@@ -194,7 +194,7 @@
 <p><img src="/2020/03/09/log4j2-slow/jprofiler-2.png" alt="开启监控"> </p>
 <p>开启监控后，我们立马通过postman发起一次请求调用，调用完成后，立即点击上方的<code>Stop Recordings</code>来停止监控。</p>
 <p><img src="/2020/03/09/log4j2-slow/jprofiler-3.png" alt="监控统计结果"></p>
-<p>由于线程堆栈很长，因此直截取了最后的部分。可以看出我们的统计时间段内，91.9%(接近6s)的CPU时间都被<code>java.util.jar.JarInputStream.getNextJarEntry</code>这个方法所占用，从方法签名可以看出来这是JDK自带的一个方法，用来获取下一个jar包中的某些信息。</p>
+<p>由于线程堆栈很长，因此直截取了最后的部分。可以看出我们的统计时间段内，91.9%(接近6s)的CPU时间都被<code>java.util.jar.JarInputStream.getNextJarEntry</code>这个方法所占用，从方法签名可以看出来这是JDK自带的一个方法，用来获取下一个jar包的某些信息。</p>
 <p>另外也可以从线程快照中看出来。点击左侧面板中的<code>Threads</code>，发起请求调用后，可在请求完成前(我们的case中该请求有5s多的耗时，足以从postman切过来)点击左上方按钮，dump下当前线程快照，每点击一次，就会生成一份快照。</p>
 <p><img src="/2020/03/09/log4j2-slow/jprofiler-4.png" alt="开启线程快照"></p>
 <p><img src="/2020/03/09/log4j2-slow/jprofiler-5.png" alt="线程快照结果"></p>
@@ -309,7 +309,7 @@
 <p>这个<code>TomcatEmbeddedWebappClassLoader</code>正是Webapp类加载器，我们分析下它加载类的过程。<br><img src="/2020/03/09/log4j2-slow/emebededclassloader.png" alt="emebededclassloader"></p>
 <p><img src="/2020/03/09/log4j2-slow/code-5.png" alt="code-5"></p>
 <p><strong>可以看出跟tomcat官方文档描述的一致</strong>，默认从自身进行加载，只有当配置了<code>delegate=true</code>之后才先尝试利用父加载器加载，当从父加载器中未找到时，才从自身加载。由于我们并没有配置<code>delegate</code>参数，所以会优先从<code>/WEB-INF/classes</code>以及<code>/WEB-INF/lib\/\*.jar</code>中加载。</p>
-<h3 id="罪魁祸首：sun-reflect-GeneratedMethodAccessor"><a href="#罪魁祸首：sun-reflect-GeneratedMethodAccessor" class="headerlink" title="罪魁祸首：sun.reflect.GeneratedMethodAccessor\"></a>罪魁祸首：sun.reflect.GeneratedMethodAccessor\<n></n></h3><p>现在我们来思考一个问题：<br>异常堆栈中的函数要么是业务代码，要么是log4j2中的方法，这些类应该被SystemClassloader(又称应用类加载器)加载过了，这些类对象应该已经存放在方法区中，<code>Class.forName</code>实际就是查询下元空间（堆外内存，使用DirectByteBuffer操作，要比堆内内存还快）。我们异常堆栈中就几十个类，真正需要加载的（大部分类在线程堆栈中已经拿到）也就几个，根本不可能耗时400ms,线上更是恐怖的5s.</p>
+<h3 id="罪魁祸首"><a href="#罪魁祸首" class="headerlink" title="罪魁祸首"></a>罪魁祸首</h3><p>现在我们来思考一个问题：<br>异常堆栈中的函数要么是业务代码，要么是log4j2中的方法，这些类应该被SystemClassloader(又称应用类加载器)加载过了，这些类对象应该已经存放在方法区中，<code>Class.forName</code>实际就是查询下元空间（堆外内存，使用DirectByteBuffer操作，要比堆内内存还快）。我们异常堆栈中就几十个类，真正需要加载的（大部分类在线程堆栈中已经拿到）也就几个，根本不可能耗时400ms,线上更是恐怖的5s.</p>
 <blockquote>
 <p>Class.forName会调用native的JVM实现，调用前该方法会确定准备好需要加载的类名以及ClassLoader，将其传递给native方法，进入到JVM实现后，首先会在SystemDictionary中根据类名和ClassLoader组成hash，进行查询，如果能够命中，则返回。出处：<a href="https://www.jianshu.com/p/aedee0e14319]" target="_blank" rel="noopener">Class.forName和ClassLoader.loadClass</a></p>
 </blockquote>
@@ -331,7 +331,7 @@
 <p>该阈值可以通过jvm参数-Dsun.reflect.inflationThreshold进行配置。</p>
 </blockquote>
 <p><strong>到了最关键的一步，为何加载<code>GeneratedMethodAccessor&lt;N&gt;</code>会这么慢？</strong></p>
-<h3 id="GeneratedMethodAccessor-加载为何如此慢？"><a href="#GeneratedMethodAccessor-加载为何如此慢？" class="headerlink" title="GeneratedMethodAccessor\加载为何如此慢？"></a>GeneratedMethodAccessor\<n>加载为何如此慢？</n></h3><p><code>GeneratedMethodAccessor&lt;N&gt;</code>在JVM中是一个比较特殊的类，该类只能通过一个特定的类加载器<code>DelegatingClassLoader</code>来加载，也就是说WebApp类加载器以及其他类加载器都加载不到这个类，抛出<code>ClassNotFoundException</code>.</p>
+<h3 id="GeneratedMethodAccessor加载为何如此慢？"><a href="#GeneratedMethodAccessor加载为何如此慢？" class="headerlink" title="GeneratedMethodAccessor加载为何如此慢？"></a>GeneratedMethodAccessor<n>加载为何如此慢？</n></h3><p><code>GeneratedMethodAccessor&lt;N&gt;</code>在JVM中是一个比较特殊的类，该类只能通过一个特定的类加载器<code>DelegatingClassLoader</code>来加载，也就是说WebApp类加载器以及其他类加载器都加载不到这个类，抛出<code>ClassNotFoundException</code>.</p>
 <p>我们来看看<code>TomcatEmbeddedWebappClassLoader</code>为何对这个特殊类的加载会如此慢？</p>
 <p>在<code>TomcatEmbeddedWebappClassLoader.findClassInternal</code>中会将该类名当做一个资源在war包中寻找。具体做法是将”/WEB-INF/classes” + className 作为路径在<strong>war包中的每个jar包中搜索。</strong></p>
 <p>来看看具体的搜索过程<code>org.apache.catalina.webresources.StandardRoot.getResourceInternal</code>方法，如下图所示：<br><img src="/2020/03/09/log4j2-slow/code-6.png" alt="code-6"></p>
@@ -353,7 +353,7 @@
 <p>Tomcat有个后台线程每隔固定时间来触发这个方法，我们的case中是30s就来清理一遍缓存。</p>
 <p><img src="/2020/03/09/log4j2-slow/code-10.png" alt="code-10"></p>
 <p>至此，我们弄清楚了war包部署下为何慢的问题。</p>
-<h3 id="jar包部署为何不慢？"><a href="#jar包部署为何不慢？" class="headerlink" title="jar包部署为何不慢？"></a>jar包部署为何不慢？</h3><p>我们将示例项目中的<code>pom.xml</code>改成jar包模式，然后运行<code>./bootstrap-jar.sh</code><br>并通过5006端口进行调试（服务启动后至少调用15次测试接口），很容易就发现了问题所在。</p>
+<h3 id="jar包部署模式为何不慢？"><a href="#jar包部署模式为何不慢？" class="headerlink" title="jar包部署模式为何不慢？"></a>jar包部署模式为何不慢？</h3><p>我们将示例项目中的<code>pom.xml</code>改成jar包模式，然后运行<code>./bootstrap-jar.sh</code><br>并通过5006端口进行调试（服务启动后至少调用15次测试接口），很容易就发现了问题所在。</p>
 <p>这是jar包部署下，加载<code>GeneratedMethodAccessor&lt;N&gt;</code>时的<code>allResources</code>, 可以看出其中只有一个<code>mainResources</code>终有一个元素，并且是个<code>DirResourceSet</code>，其内部加载一个路径时，只需要以读文件的方式去获取就可以了，可以理解为只有一次简单的IO，不会逐个扫描每个jar包。</p>
 <blockquote>
 <p>本case中路径为/{path}/log4j2slow/src/main/webapp/WEB-INF/classes/sun/reflect/GeneratedMethodAccessor27.class</p>
@@ -411,8 +411,20 @@
       <div class="tags">
         <span>Tags:</span>
         
-  <a href="/tags#-log4j2 -jvm -classloader">
-    <span class="tag-code">-log4j2 -jvm -classloader</span>
+  <a href="/tags#log4j2">
+    <span class="tag-code">log4j2</span>
+  </a>
+
+  <a href="/tags#jvm">
+    <span class="tag-code">jvm</span>
+  </a>
+
+  <a href="/tags#classloader">
+    <span class="tag-code">classloader</span>
+  </a>
+
+  <a href="/tags#反射优化">
+    <span class="tag-code">反射优化</span>
   </a>
 
       </div>
@@ -454,7 +466,7 @@
   <div class="toc-main">
     <strong class="toc-title">Catalog</strong>
     
-      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#背景"><span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#排查过程"><span class="toc-nav-text">排查过程</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#代码分析"><span class="toc-nav-text">代码分析</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#远程调试"><span class="toc-nav-text">远程调试</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#灵机一动"><span class="toc-nav-text">灵机一动</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#JProfiler诊断"><span class="toc-nav-text">JProfiler诊断</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#简化复现环境"><span class="toc-nav-text">简化复现环境</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境准备"><span class="toc-nav-text">环境准备</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#源码调试"><span class="toc-nav-text">源码调试</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#问题代码定位"><span class="toc-nav-text">问题代码定位</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#ThrowableProxy"><span class="toc-nav-text">ThrowableProxy</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tomcat类加载机制"><span class="toc-nav-text">tomcat类加载机制</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#log4j2是如何加载类的"><span class="toc-nav-text">log4j2是如何加载类的</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#罪魁祸首：sun-reflect-GeneratedMethodAccessor"><span class="toc-nav-text">罪魁祸首：sun.reflect.GeneratedMethodAccessor\</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#GeneratedMethodAccessor-加载为何如此慢？"><span class="toc-nav-text">GeneratedMethodAccessor\加载为何如此慢？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#jar包文件缓存失效"><span class="toc-nav-text">jar包文件缓存失效</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#jar包部署为何不慢？"><span class="toc-nav-text">jar包部署为何不慢？</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-text">总结</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#问题解法"><span class="toc-nav-text">问题解法</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#番外"><span class="toc-nav-text">番外</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#参考文献"><span class="toc-nav-text">参考文献</span></a></li></ol>
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#背景"><span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#排查过程"><span class="toc-nav-text">排查过程</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#代码分析"><span class="toc-nav-text">代码分析</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#远程调试"><span class="toc-nav-text">远程调试</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#灵机一动"><span class="toc-nav-text">灵机一动</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#JProfiler诊断"><span class="toc-nav-text">JProfiler诊断</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#简化复现环境"><span class="toc-nav-text">简化复现环境</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境准备"><span class="toc-nav-text">环境准备</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#源码调试"><span class="toc-nav-text">源码调试</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#问题代码定位"><span class="toc-nav-text">问题代码定位</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#ThrowableProxy"><span class="toc-nav-text">ThrowableProxy</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tomcat类加载机制"><span class="toc-nav-text">tomcat类加载机制</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#log4j2是如何加载类的"><span class="toc-nav-text">log4j2是如何加载类的</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#罪魁祸首"><span class="toc-nav-text">罪魁祸首</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#GeneratedMethodAccessor加载为何如此慢？"><span class="toc-nav-text">GeneratedMethodAccessor加载为何如此慢？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#jar包文件缓存失效"><span class="toc-nav-text">jar包文件缓存失效</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#jar包部署模式为何不慢？"><span class="toc-nav-text">jar包部署模式为何不慢？</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-text">总结</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#问题解法"><span class="toc-nav-text">问题解法</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#番外"><span class="toc-nav-text">番外</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#参考文献"><span class="toc-nav-text">参考文献</span></a></li></ol>
     
   </div>
 </aside>
