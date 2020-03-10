@@ -141,6 +141,26 @@
   
     <article class="article-card">
       <h2 class="article-head">
+        <a href="/2020/03/09/slf4j2-slow/">一次log4j2的慢日志问题排查</a>
+      </h2>
+      <p class="article-date">March 9, 2020</p>
+      
+        
+  <a href="/tags#-log4j2 -jvm -classloader">
+    <span class="tag-code">-log4j2 -jvm -classloader</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          背景最近新上线了一个服务，业务方反映服务的某个接口会随机的变慢，大约耗时5s左右。因为出现问题的接口业务逻辑非常简单，只有几次简单的查库操作，且服务刚上线，流量很低，肯定不是并发过高导致，所以5s这个耗时显然十分诡异。从下图的服务监控可以看到，该接口的平均耗时3.8775s，且该接口一个小时 ...
+        
+      </div>
+      <a class="more" href="/2020/03/09/slf4j2-slow/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
         <a href="/2018/01/22/dfss/">东方时尚科目三考试路线视频下载</a>
       </h2>
       <p class="article-date">January 22, 2018</p>
@@ -323,26 +343,6 @@ jasper的SVM入门教程，总共 ...
       <a class="more" href="/2016/11/24/python-information-gain/">Read more</a>
     </article>
   
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/09/30/meka-multilabel-classifier/">使用meka实现multilabel classifier</a>
-      </h2>
-      <p class="article-date">September 30, 2016</p>
-      
-        
-  <a href="/tags#机器学习">
-    <span class="tag-code">机器学习</span>
-  </a>
-
-      
-      <div class="article-summary">
-        
-          &#160; &#160; &#160; &#160;乍一看题目，使用”meka“实现分类器，是不是笔者打错了啊，应该是weka啊。其实不然，这世上还真有一个叫meka的包，并且他还跟weka算是亲戚关系。只不过，这个meka是一个专门用来解决多标签分类问题的包，并且是基于weka的，可以算 ...
-        
-      </div>
-      <a class="more" href="/2016/09/30/meka-multilabel-classifier/">Read more</a>
-    </article>
-  
 
   
     <div class="guide-pager">
@@ -362,7 +362,7 @@ jasper的SVM入门教程，总共 ...
 </div>
     <footer class="app-footer">
   <p class="copyright">
-    &copy; 2018 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    &copy; 2020 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
     <br>
     Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
   </p>

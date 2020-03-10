@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel的个人博客">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      一次log4j2的慢日志问题排查 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>一次log4j2的慢日志问题排查</h2>
+  <p class="post-date">2020-03-09</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>最近新上线了一个服务，业务方反映服务的某个接口会随机的变慢，大约耗时5s左右。因为出现问题的接口业务逻辑非常简单，只有几次简单的查库操作，且服务刚上线，流量很低，肯定不是并发过高导致，所以5s这个耗时显然十分诡异。从下图的服务监控可以看到，该接口的平均耗时3.8775s，且该接口一个小时内只有4次调用。<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/cat_monitor.png" alt="接口性能监控"> </p>
+<p>经过一番测试排查，发现该问题的几个重要特征：</p>
+<ol>
+<li><strong>变慢的case有一个非常重要的共性：服务内部抛了我们自定义的异常<code>ServiceException</code>（这个异常可以简单认为是调用方传来了不符合预期的请求参数，属于正常情况）。</strong></li>
+<li><strong>这个变慢是随机的，另外当服务刚启动的一段时间内接口是正常的(正常情况下的响应时间是20ms左右)。</strong></li>
+<li><strong>从线上环境以及我们的预发环境该问题都可以得到稳定复现，只有在本地复现不了。</strong></li>
+</ol>
+<p>看起来这确实是一个令人头疼的问题。</p>
+<h1 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h1><h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>该接口的业务逻辑非常简单，只有几次简单的查库操作，另外当正常请求（调用方传参正确，不抛<code>ServiceException</code>）时平均耗时只有20ms，这说明问题肯定不是发生在业务逻辑中。</p>
+<p>那么当抛<code>ServiceException</code>时我们的服务做了哪些操作呢？<br>我们通过继承Spring的<code>ResponseEntityExceptionHandler</code>对<code>ServiceException</code>做了统一处理。处理逻辑很简单，由于你懂得原因，此处不贴具体代码。该处理逻辑主要干了两件事：</p>
+<ol>
+<li><p>通过log.error的方式记录下该异常。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log.error(<span class="string">"happened service exception!"</span>, ex);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将<code>ServiceException</code>包装成我们统一的输出格式返回。</p>
+</li>
+</ol>
+<p>问题肯定出在这两个环节。</p>
+<h2 id="远程调试"><a href="#远程调试" class="headerlink" title="远程调试"></a>远程调试</h2><p>由于本地复现不了这个问题（在本地测试时接口响应耗时普遍在50ms），所以想到用远程调试的方式去我们的预发环境debug看看，看下问题出在哪一步。</p>
+<p>在服务启动脚本中加入以下命令便可在本地IDEA中进行远程调试。服务启动后将会暴露出5005端口，我们可在本地通过该端口连接远程服务，进行远程调试。具体可参考：<a href="https://www.cnblogs.com/victorbu/p/10904732.html" title="IDEA 远程调试" target="_blank" rel="noopener">IDEA 远程调试</a><br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>当然一般公司内线下环境跟线上环境会有网络隔离，所有你需要一个特殊的姿势来从线下访问线上环境。</p>
+</blockquote>
+<p>成功启动远程调试后，打好断点，在本地发出测试请求，很容易定位到卡在了打印日志的那一行。<br>继续追到<code>log.error</code>内部打断点，但由于线上业务一直有其他线程在打日志，而任何线程都会被我们断点拦截（可以认为是流量干扰），所以没法再继续深入debug.<br>但我们已经成功地缩小了排查范围：<strong>问题出在打印错误日志的那一行</strong><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log.error(<span class="string">"happened service exception!"</span>, ex);</span><br></pre></td></tr></table></figure></p>
+<p>并既有可能是打印错误堆栈造成的。<br>定位到此之后，为了不继续影响线上业务，将该语句改成只log一下<code>ServiceException</code>的message(即不打印异常堆栈)<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log.error(<span class="string">"happened service exception! message:&#123;&#125;"</span>, ex.getMessage());</span><br></pre></td></tr></table></figure></p>
+<p>并紧急上线，上线后业务反应接口正常了。</p>
+<p>接口慢的问题是解了，但这个解法过于粗暴，关闭异常堆栈打印的做法，显示不利于线上问题的排查。<br>因此还需要继续往下追。</p>
+<h2 id="灵机一动"><a href="#灵机一动" class="headerlink" title="灵机一动"></a>灵机一动</h2><p>现在远程调试由于流量干扰走不通了，而本地又一直无法复现该问题，所以排查陷入了一个死胡同中。但有时就是山重水复疑无路，柳岸花名又一村。突然想到我们线上部署时是将服务打成war包（服务是SpringBoot应用，为什么使用war包部署，属于历史遗留问题），然后再利用<code>java -jar xx.war</code>来执行这个war包。  </p>
+<p>而本地调试时，在IDEA内部直接启动SpringBoot的入口函数，是将项目代码编译成class文件放置到<code>target</code>目录中，并将<code>target</code>目录加入<code>classpath</code>，并将所有依赖的jar包也加入<code>classpath</code>（关于IDEA启动SpringBoot的过程是笔者的猜测，因未在<code>target</code>中找到可执行的jar包或者war包）。</p>
+<blockquote>
+<p>注：本地启动时未使用maven来启动SpringBoot项目，而是执行在IDEA中运行入口函数</p>
+</blockquote>
+<p><em>那会不会是部署方式引起的呢？因为代码是一致的。</em></p>
+<p>将线上部署脚本在本地执行一遍，以启动线上服务的方式来启动本地服务。（本质就是利用maven将服务先打成war包，然后再使用<code>java -jar xx.war</code>来启动这个war包）</p>
+<p>谢天谢地，本地也能复现这个问题了。</p>
+<p>更进一步，我很好奇如果将服务打成jar包执行呢？实验显示，<strong>通过jar包启动服务的话，接口响应正常，无法复现该问题。</strong></p>
+<p>那么该问题又多了一条重要的性质： </p>
+<ol start="4">
+<li><strong>只在使用war包部署后出现，直接启动或者使用jar包部署后服务正常。</strong></li>
+</ol>
+<h2 id="JProfiler诊断"><a href="#JProfiler诊断" class="headerlink" title="JProfiler诊断"></a>JProfiler诊断</h2><p>既然本地能够复现，那么问题就好办了。我们现在需要知道的是<code>log.error</code>里面究竟发生了什么。本来想通过远程调试本地war包进程的方式来追踪卡在哪儿，但不幸的是，由于我们服务引用了很多中间件，即使没有业务流量，这些中间件也在疯狂抛日志，都会执行log4j2的实现代码，不方便使用断点来进行调试。  </p>
+<p>因为我们的问题是一个接口执行流程慢，因此最重要的是定位出慢在了哪个步骤，具体点：就是线程阻塞在或者长时间运行在哪个函数中。java生态有很多这种性能诊断工具，比如<a href="https://www.ej-technologies.com/download/jprofiler/files" title="JProfiler" target="_blank" rel="noopener">JProfiler</a>或者阿里的<a href="https://github.com/alibaba/arthas" title="Arthas" target="_blank" rel="noopener">Arthas</a>.这里笔者使用JProfiler来进行分析。</p>
+<p>将服务在本地使用war包方式启动后，通过JProfiler attach上我们的java进程。<br>我们在连接前先定义下过滤规则（就是告诉JProfiler监控哪些包下的类或者哪些类）。<br>笔试增加了三条包规则：<code>com.sankuai</code>,<code>com.meituan</code>(我们的业务逻辑都在这两个包下)<br>以及<code>org</code>因为关键分析内容log4j2、以及日志门面slf4j都是以org开头的包。如下图所示：<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/jprofiler-profile-package.png" alt="增加过滤规则"> </p>
+<p>连接好之后，我们主要关心调用栈中哪一步耗时最长，我们点击左侧面板的<code>CPU views</code>, 然后点击左上角的按钮来开启监控。如下图所示：</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/jprofiler-2.png" alt="开启监控"> </p>
+<p>开启监控后，我们立马通过postman发起一次请求调用，调用完成后，立即点击上方的<code>Stop Recordings</code>来停止监控。</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/jprofiler-3.png" alt="监控统计结果"></p>
+<p>由于线程堆栈很长，因此直截取了最后的部分。可以看出我们的统计时间段内，91.9%(接近6s)的CPU时间都被<code>java.util.jar.JarInputStream.getNextJarEntry</code>这个方法所占用，从方法签名可以看出来这是JDK自带的一个方法，用来获取下一个jar包中的某些信息。</p>
+<p>另外也可以从线程快照中看出来。点击左侧面板中的<code>Threads</code>，发起请求调用后，可在请求完成前(我们的case中该请求有5s多的耗时，足以从postman切过来)点击左上方按钮，dump下当前线程快照，每点击一次，就会生成一份快照。</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/jprofiler-4.png" alt="开启线程快照"></p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/jprofiler-5.png" alt="线程快照结果"></p>
+<p>可以看出我拍了6份快照，我们随便点开一份快照，找到<font color="#00ff00">绿色</font>线程（<font color="#00ff00">绿色</font>代表RUNNING)是<code>http-nio-8080-exec-8</code>。这其实是tomcat的连接处理线程。我们从线程堆栈中也能看出线程在执行<code>java.util.jar.JarInputStream.getNextJarEntry</code>附近的代码。</p>
+<p>那问题代码块就定位清楚，就出在这行代码附近。</p>
+<h2 id="简化复现环境"><a href="#简化复现环境" class="headerlink" title="简化复现环境"></a>简化复现环境</h2><p>定位清楚了问题代码，就需要我们能一步步调试进去，明白整个处理流程。但由于之前说的，即使在线下，由于服务引入的大量中间件也在时刻打着日志，严重影响我们的调试。因此只能提取出一个干净的问题复现环境。</p>
+<h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><ul>
+<li>SpringBoot:   1.5.9.RELEASE</li>
+<li>slf4j: 1.7.22</li>
+<li>log4j: 2.7</li>
+<li>jdk: 1.8</li>
+<li>System: *nix</li>
+</ul>
+<p>项目代码地址：<a href="https://github.com/ayonel/slf4j2-slow" target="_blank" rel="noopener">https://github.com/ayonel/slf4j2-slow</a></p>
+<p>项目功能非常简单，只有一个接口，当该接口抛自定义异常<code>ServiceException</code>时会走到统一处理逻辑<code>WebExceptionHandler.handleServiceException</code>。该函数只做2件事，打印错误日志，包装错误信息成统一的响应格式，并返回。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * handle ServiceException</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> ex            the exception</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> webRequest    the current request</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@ExceptionHandler</span>(value = &#123;ServiceException.class&#125;)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> ResponseEntity&lt;WebRestResult&gt; <span class="title">handleServiceException</span><span class="params">(ServiceException ex, WebRequest webRequest)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// STEP1: 打印错误日志</span></span><br><span class="line">    log.error(<span class="string">"happened service exception!"</span>, ex);</span><br><span class="line">    <span class="comment">// STEP2: 包装错误信息，并返回</span></span><br><span class="line">    HttpHeaders headers = <span class="keyword">new</span> HttpHeaders();</span><br><span class="line">    headers.setContentType(MediaType.parseMediaType(MediaType.APPLICATION_JSON_UTF8_VALUE));</span><br><span class="line">    WebRestResult restResult = <span class="keyword">new</span> WebRestResult(-<span class="number">1</span>, ex.getMessage(), <span class="keyword">null</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(restResult, headers, HttpStatus.OK);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>该程序支持两种部署方式，jar 以及 war。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">部署方式</th>
+<th style="text-align:center">服务端口</th>
+<th style="text-align:center">远程调试端口</th>
+<th style="text-align:center">测试URL</th>
+<th style="text-align:center">响应时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">war</td>
+<td style="text-align:center">8080</td>
+<td style="text-align:center">5005</td>
+<td style="text-align:center">localhost:8081/hello/war</td>
+<td style="text-align:center"><font color="red">~400ms</font></td>
+</tr>
+<tr>
+<td style="text-align:center">jar</td>
+<td style="text-align:center">8081</td>
+<td style="text-align:center">5006</td>
+<td style="text-align:center">localhost:8080/hello/jar</td>
+<td style="text-align:center"><font color="green">~30ms</font></td>
+</tr>
+</tbody>
+</table>
+<p>执行根目录下的<code>bootstrap-jar.sh</code>或者<code>bootstrap-war.sh</code>会分别以jar或者war的方式部署。启动程序后，多进行测试调用（可以使用ab命令），便可复现问题。</p>
+<blockquote>
+<p>注意！！！部署前，一定保证pom.xml中的<package>标签中的内容跟你要执行的模式保持一致。也就意味着，需要先修改pom.xml中的<package>，再执行部署脚本。</package></package></p>
+</blockquote>
+<p>当调用测试URL后，预期会返回：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"code"</span>: <span class="number">-1</span>,</span><br><span class="line">    <span class="attr">"message"</span>: <span class="string">"do not call me jar, error occurred!!!"</span>,</span><br><span class="line">    <span class="attr">"data"</span>: <span class="literal">null</span></span><br><span class="line">&#125;</span><br><span class="line">`</span><br></pre></td></tr></table></figure></p>
+<p>代表服务发生业务异常，向前端传回了异常信息。</p>
+<p>该服务启动后，除非调用测试URL才会打印一条错误日志，除此之外，再无其他线程打印日志，因此可以排除其他线程的干扰，放心调试。</p>
+<p>日志文件在<code>target</code>文件夹下，以jar包启动的会写入jar开头的文件中；以war包启动的会写入war开头的文件中。</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/log.png" alt="日志文件"></p>
+<h2 id="源码调试"><a href="#源码调试" class="headerlink" title="源码调试"></a>源码调试</h2><h3 id="问题代码定位"><a href="#问题代码定位" class="headerlink" title="问题代码定位"></a>问题代码定位</h3><p>我们先来调试war包模式的代码。我们在<code>java.util.jar.JarInputStream.getNextJarEntry</code>附近打上断点，开始进行调试。<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-1.png" alt="code-1"><br>可以看到是<code>org.apache.catalina.webresources.JarWarResourceSet#getArchiveEntries</code>这个方法（记住这个方法，下文还会讲到）中在循环调用<code>getNextJarEntry</code>方法。并且这个方法其实是个同步代码块，加上了锁。（当然在我们的测试中，由于只有一个线程在执行这个方法，所以并不存在锁竞争问题，但这个锁对向上服务肯定有着影响，这其实也是线上接口5s多的原因之一）。<br>那么<code>org.apache.catalina.webresources.JarWarResourceSet.JarWarResourceSet#getArchiveEntries</code>这个方法是做什么用的呢？</p>
+<p>在解释这个问题前，我们先不着急，因为这只是调用栈的最深入，为了看清问题的全貌我们需要往前看，这个调用是在哪儿触发的。通过查看源码调试及查阅网上资料，最终将目光投向了<code>org.apache.logging.log4j.core.impl.ThrowableProxy.toExtendedStackTrace</code>这个函数.</p>
+<h3 id="ThrowableProxy"><a href="#ThrowableProxy" class="headerlink" title="ThrowableProxy"></a>ThrowableProxy</h3><p>先解释下<code>ThrowableProxy</code>这个类是什么，从名字上看这个一个对异常的代理包装。在我们的case中就是对<code>ServiceException</code>的包装，那为什么需要这个类呢？先看下该类的注释：</p>
+<blockquote>
+<p>A proxy is used to represent a throwable that may not exist in a different class loader or JVM. When an application deserializes a ThrowableProxy, the throwable may not be set, but the throwable’s information is preserved in other<br> fields of the proxy like the message and stack trace.</p>
+</blockquote>
+<p>大意就是为异常添加一些扩展信息，用于从不同的JVM或者类加载器标识这个异常。</p>
+<p>LogEvent（log4j2对日志事件的封装）可能存在跨网络传输的情况，而本地的LogEvent中的异常栈可能传给另一个JVM，此时该异常栈可能不会被识别，因此需要对异常进行扩展，添加扩展信息，比如异常栈中方法所属的jar包，以及版本。</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/stacktrace.png" alt="stack-trace"><br>如上图的所以，这些扩展信息就是异常栈中每个方法所属的jar包及版本。（万恶的根源）</p>
+<p><code>org.apache.logging.log4j.core.impl.ThrowableProxy#toExtendedStackTrace</code>这个方法做的事就是将异常栈的每个方法，添上这些扩展信息。</p>
+<p>由于这个方法比较复杂，我就不贴代码了，感兴趣的同学可以自己研究下。我总结下这个方法大致做了什么：</p>
+<ol>
+<li>为了得到方法的扩展信息，需要拿到方法所属的类，从类中拿到所属jar包(location)以及版本（version）。<blockquote>
+<p>扩展信息当然不是直接从Class对象中得到，可以具体看<code>ThrowableProxy.toCacheEntry</code>方法</p>
+</blockquote>
+</li>
+<li>因为异常栈中并没有保存Class对象，只有所属类名，因此需要做类加载。log4j2做了一个优化，将当前线程栈跟异常堆栈做一个对比，大部分情况他们都是有同样的根节点，如果线程栈中的类跟异常堆栈中的类名相等，那么就不需要做类加载了，直接拿线程栈中的类对象即可。否则，需要做类加载。<blockquote>
+<p>通过<code>final Stack&lt;Class&lt;?&gt;&gt; stack = ReflectionUtil.getCurrentStackTrace()</code>获得线程栈，栈中的元素就是Class对象）</p>
+</blockquote>
+</li>
+</ol>
+<p><font color="red"><strong>问题就出在类加载这里..</strong>.</font></p>
+<h3 id="tomcat类加载机制"><a href="#tomcat类加载机制" class="headerlink" title="tomcat类加载机制"></a>tomcat类加载机制</h3><p>在这里我们先来了解下类加载的相关知识，更具体的，是要明白tomcat的类加载原理，感兴趣的可以看下这篇官方文档：<a href="https://tomcat.apache.org/tomcat-8.5-doc/class-loader-howto.html" target="_blank" rel="noopener">Class Loader How-To</a></p>
+<p>tomcat环境下的类加载器的父子关系为：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">    Bootstrap</span><br><span class="line">        |</span><br><span class="line">     System</span><br><span class="line">        |</span><br><span class="line">     Common</span><br><span class="line">     /     \</span><br><span class="line">Webapp1   Webapp2 ...</span><br></pre></td></tr></table></figure></p>
+<p>这里我总结下tomcat环境默认加载一个类的顺序：</p>
+<ol>
+<li>从JVM的Bootstrap类加载器(加载rt.jar、resources.jar、charsets.jar等)中尝试加载</li>
+<li>从Webapp类加载器中加载,将按照顺序从：<ol>
+<li>从Web应用的/WEB-INF/classes中尝试寻找加载</li>
+<li>从Web应用的/WEB-INF/lib\/*.jar中尝试寻找并加载</li>
+</ol>
+</li>
+<li>从System类加载器（又称应用类加载器,默认加载CLASSPATH中的类）中尝试加载</li>
+<li>从Common类加载器（加载tomcat的一些公共类）中尝试加载</li>
+</ol>
+<p>我们可以看出这个默认加载顺序，实际上背离了<code>双亲委派</code>原则。为什么这么做，<a href="https://tomcat.apache.org/tomcat-8.5-doc/class-loader-howto.html" target="_blank" rel="noopener">Class Loader How-To</a><br>中其实已经解释了。这个优化可以通过配置<code>&lt;Loader delegate=&quot;true&quot;/&gt;</code>来关闭。</p>
+<blockquote>
+<p>As mentioned above, the web application class loader diverges from the default Java delegation model (in accordance with the recommendations in the Servlet Specification, version 2.4, section 9.7.2 Web Application Classloader). <strong><font color="red"> When a request to load a class from the web application’s WebappX class loader is processed, this class loader will look in the local repositories first, instead of delegating before looking. </font></strong></p>
+</blockquote>
+<h3 id="log4j2是如何加载类的"><a href="#log4j2是如何加载类的" class="headerlink" title="log4j2是如何加载类的"></a>log4j2是如何加载类的</h3><p>那我们再结合源码来看下,当log4j2真正需要加载类时是怎么做的？</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-2.png" alt="code-2"></p>
+<ol>
+<li>先尝试用<code>lastLoader</code>来加载，这个<code>lastLoader</code>是指在处理异常堆栈的过程中，上一次加载类的加载器或者上一个线程堆栈中类对象的加载器。<blockquote>
+<p>可以看到当前的<code>lastLoader</code>是<code>LauncherURLClassLoader</code>,这是SpringBoot实现的一个自定义加载器，用来实现jar in jar中class文件的加载。详见：<br><a href="https://segmentfault.com/a/1190000013532009" target="_blank" rel="noopener">springboot应用启动原理(二) 扩展URLClassLoader实现嵌套jar加载</a></p>
+</blockquote>
+</li>
+<li>如果没加载到，尝试用<code>LoaderUtil.loadClass</code>来加载</li>
+<li>如果还没加载到，则调用ThrowableProxy这个类自身的加载器来加载。</li>
+</ol>
+<p>那么<code>LoaderUtil.loadClass</code>中做了什么呢？<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-3.png" alt="code-3"></p>
+<ol>
+<li>如果配置了要忽略线程上线文加载器(TCCL),则直接进行<code>Class.forName</code>加载</li>
+<li>否则先尝试用TCCL加载</li>
+<li>用TCCL加载发生异常时，再用<code>Class.forName</code>兜底<blockquote>
+<p>线程上下文类加载器是从 JDK 1.2 开始引入的。Java.lang.Thread中的方法 getContextClassLoader()和 setContextClassLoader(ClassLoader cl)用来获取和设置线程的上下文类加载器。如果没有通过 setContextClassLoader(ClassLoader cl)方法进行设置的话，线程将继承其父线程的上下文类加载器。Java 应用运行的初始线程的上下文类加载器是系统类加载器，在线程中运行的代码可以通过此类加载器来加载类和资源。<a href="https://blog.csdn.net/justloveyou_/article/details/72231425" target="_blank" rel="noopener">出处链接</a></p>
+</blockquote>
+</li>
+</ol>
+<p>TCCL是通过<code>Thread.currentThread().getContextClassLoader();</code>获得的，而当前线程是<code>http-nio-8080-exec-7</code>,这个线程是tomcat用来处理链接的线程，TCCL为：<code>TomcatEmbeddedWebappClassLoader</code><br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-4.png" alt="code-4"></p>
+<p>这个<code>TomcatEmbeddedWebappClassLoader</code>正是Webapp类加载器，我们分析下它加载类的过程。<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/emebededclassloader.png" alt="emebededclassloader"></p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-5.png" alt="code-5"></p>
+<p><strong>可以看出跟tomcat官方文档描述的一致</strong>，默认从自身进行加载，只有当配置了<code>delegate=true</code>之后才先尝试利用父加载器加载，当从父加载器中未找到时，才从自身加载。由于我们并没有配置<code>delegate</code>参数，所以会优先从<code>/WEB-INF/classes</code>以及<code>/WEB-INF/lib\/\*.jar</code>中加载。</p>
+<h3 id="罪魁祸首：sun-reflect-GeneratedMethodAccessor"><a href="#罪魁祸首：sun-reflect-GeneratedMethodAccessor" class="headerlink" title="罪魁祸首：sun.reflect.GeneratedMethodAccessor\"></a>罪魁祸首：sun.reflect.GeneratedMethodAccessor\<n></n></h3><p>现在我们来思考一个问题：<br>异常堆栈中的函数要么是业务代码，要么是log4j2中的方法，这些类应该被SystemClassloader(又称应用类加载器)加载过了，这些类对象应该已经存放在方法区中，<code>Class.forName</code>实际就是查询下元空间（堆外内存，使用DirectByteBuffer操作，要比堆内内存还快）。我们异常堆栈中就几十个类，真正需要加载的（大部分类在线程堆栈中已经拿到）也就几个，根本不可能耗时400ms,线上更是恐怖的5s.</p>
+<blockquote>
+<p>Class.forName会调用native的JVM实现，调用前该方法会确定准备好需要加载的类名以及ClassLoader，将其传递给native方法，进入到JVM实现后，首先会在SystemDictionary中根据类名和ClassLoader组成hash，进行查询，如果能够命中，则返回。出处：<a href="https://www.jianshu.com/p/aedee0e14319]" target="_blank" rel="noopener">Class.forName和ClassLoader.loadClass</a></p>
+</blockquote>
+<p>通过逐步调试，验证了异常栈中每个类的加载都非常快，除了它：<code>sun.reflect.GeneratedMethodAccessor&lt;N&gt;</code>, N是数字。<br>一旦需要加载这个类，则会变得很慢。</p>
+<p>那这个类是做什么用的，为什么会出现在我们的异常栈中呢？</p>
+<p>经过相关google，该类实际上是JVM对反射调用的优化。</p>
+<p>jvm对待反射有两种方式：</p>
+<blockquote>
+<ol>
+<li>使用native方法进行反射操作，这种方式每次执行的速度差不多</li>
+<li>生成bytecode进行反射操作，即生成类sun.reflect.GeneratedMethodAccessor<n>，它是一个被反射调用方法的包装类，代理不同的方法，类后缀序号会递增。这种方式第一次调用速度较慢，较之第一种会慢3-4倍，但是多次调用后速度会提升20倍。</n></li>
+</ol>
+</blockquote>
+<blockquote>
+<p>出处：<a href="https://juejin.im/post/5b7d5b34518825430810be8e" target="_blank" rel="noopener">一个关于log4j2的高并发问题</a>（<strong>特别鸣谢该篇文章，在定位到GeneratedMethodAccessor的问题后，查到了这篇文章，文中的case跟本case有部分相通的地方</strong>）</p>
+</blockquote>
+<p>JVM默认当一个反射方法被调用超过一个阈值（inflationThreshold，默认15）时会使用第二种方式来做优化,也即生成<code>GeneratedMethodAccessor\&lt;N&gt;</code>。</p>
+<blockquote>
+<p>该阈值可以通过jvm参数-Dsun.reflect.inflationThreshold进行配置。</p>
+</blockquote>
+<p><strong>到了最关键的一步，为何加载<code>GeneratedMethodAccessor&lt;N&gt;</code>会这么慢？</strong></p>
+<h3 id="GeneratedMethodAccessor-加载为何如此慢？"><a href="#GeneratedMethodAccessor-加载为何如此慢？" class="headerlink" title="GeneratedMethodAccessor\加载为何如此慢？"></a>GeneratedMethodAccessor\<n>加载为何如此慢？</n></h3><p><code>GeneratedMethodAccessor&lt;N&gt;</code>在JVM中是一个比较特殊的类，该类只能通过一个特定的类加载器<code>DelegatingClassLoader</code>来加载，也就是说WebApp类加载器以及其他类加载器都加载不到这个类，抛出<code>ClassNotFoundException</code>.</p>
+<p>我们来看看<code>TomcatEmbeddedWebappClassLoader</code>为何对这个特殊类的加载会如此慢？</p>
+<p>在<code>TomcatEmbeddedWebappClassLoader.findClassInternal</code>中会将该类名当做一个资源在war包中寻找。具体做法是将”/WEB-INF/classes” + className 作为路径在<strong>war包中的每个jar包中搜索。</strong></p>
+<p>来看看具体的搜索过程<code>org.apache.catalina.webresources.StandardRoot.getResourceInternal</code>方法，如下图所示：<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-6.png" alt="code-6"></p>
+<p>可以看出是从<code>allResources</code>中进行进行遍历搜索，<code>allResources</code>是一个二维List, 其中有5类资源集合。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> List&lt;List&lt;WebResourceSet&gt;&gt; allResources =</span><br><span class="line">           <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">   &#123;</span><br><span class="line">       allResources.add(preResources);</span><br><span class="line">       allResources.add(mainResources);</span><br><span class="line">       allResources.add(classResources);</span><br><span class="line">       allResources.add(jarResources);</span><br><span class="line">       allResources.add(postResources);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>其中的元素<code>WebResourceSet</code>代表一种资源，比如一个目录、一个jar包或者一个war包。</p>
+<blockquote>
+<p>Represents a set of resources that are part of a web application. Examples include a directory structure, a resources JAR and a WAR file.</p>
+</blockquote>
+<p>下图是<code>allResources</code>的具体情况<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-7.png" alt="code-7"><br>其中<code>mainResources</code>中只有一种资源，其实就是我们服务打成的war包，<code>/{path}/log4j2slow/target/log4j2-slow.war</code></p>
+<p>而<code>classResources</code>居然有30个元素，里面是什么呢？其实就是我们服务依赖的所有jar包。</p>
+<p>加载<code>GeneratedMethodAccessor</code>类的过程中，居然要扫描31个资源。来看看每次扫描中做了什么，具体实现是<code>org.apache.catalina.webresources.AbstractArchiveResourceSet.getResource</code>方法，我截取出关键代码片段如下：<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-8.png" alt="code-8"><br>图中红框圈出的方法在之前就已经介绍到了。该方法的作用是解析该jar包，拿到一个缓存，<code>HashMap&lt;String,JarEntry&gt;</code>, 我们暂且称之为<strong>jar包文件缓存</strong>， key为jar包中目录或者class文件的路径，value为<code>JarEntry</code>，代表jar包中的一个文件（目录也算一个文件）。<br>有了这个缓存，再需要从这个jar中提取某个类，只需要从这个缓存中提取就可以了。</p>
+<p>从JProfiler的分析结果可以看出，链路的症结就在构建该缓存的逻辑<code>getArchiveEntries</code>中，其内部循环调用<code>TomcatJarInputStream.getNextJarEntry</code>来拿到该jar包中的文件，并且该过程是加锁的（之前已经分析过）。<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/jprofiler-6.png" alt="jprofiler-6"></p>
+<p>总结下：<code>TomcatEmbeddedWebappClassLoader</code>加载<code>GeneratedMethodAccessor</code>时，如果从每个jar包中提取该类的class文件，如果存在<strong>jar包文件缓存</strong>，则直接从缓存取，不存在的话，需要构造一遍<strong>jar包文件缓存</strong>（耗时就耗在这个jar包缓存构建上）</p>
+<h3 id="jar包文件缓存失效"><a href="#jar包文件缓存失效" class="headerlink" title="jar包文件缓存失效"></a>jar包文件缓存失效</h3><p>按道理说，如果构建了<strong>jar包文件缓存</strong>，之后判断jar中是否包含某个文件，应该是非常快速的事，但为什么之后的请求还是会出现变慢的情况呢？难道这个<strong>jar包文件缓存</strong>会失效？</p>
+<p><strong>是的，它的确会失效</strong><br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/webresource.png" alt="webresource-6"><br>我们可以看到jar包文件缓存所在类，实现了<code>WebResourceSet</code>接口，该接口中有一个方法叫做<code>gc</code>，<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Implementations may cache some information to improve performance. This</span></span><br><span class="line"><span class="comment">    * method triggers the clean-up of those resources.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">void</span> <span class="title">gc</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>从注释上我们能看出来，这个方法用来清理一些用于加速的缓存。来看看具体实现。<br><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-9.png" alt="code-9"></p>
+<p>那这个方法的触发时机呢？</p>
+<p>Tomcat有个后台线程每隔固定时间来触发这个方法，我们的case中是30s就来清理一遍缓存。</p>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/code-10.png" alt="code-10"></p>
+<p>至此，我们弄清楚了war包部署下为何慢的问题。</p>
+<h3 id="jar包部署为何不慢？"><a href="#jar包部署为何不慢？" class="headerlink" title="jar包部署为何不慢？"></a>jar包部署为何不慢？</h3><p>我们将示例项目中的<code>pom.xml</code>改成jar包模式，然后运行<code>./bootstrap-jar.sh</code><br>并通过5006端口进行调试（服务启动后至少调用15次测试接口），很容易就发现了问题所在。</p>
+<p>这是jar包部署下，加载<code>GeneratedMethodAccessor&lt;N&gt;</code>时的<code>allResources</code>, 可以看出其中只有一个<code>mainResources</code>终有一个元素，并且是个<code>DirResourceSet</code>，其内部加载一个路径时，只需要以读文件的方式去获取就可以了，可以理解为只有一次简单的IO，不会逐个扫描每个jar包。</p>
+<blockquote>
+<p>本case中路径为/{path}/log4j2slow/src/main/webapp/WEB-INF/classes/sun/reflect/GeneratedMethodAccessor27.class</p>
+</blockquote>
+<p><img src="/2020/03/09/slf4j2-slow/log4j2-slow/allresource-jar.png" alt="allresource-jar"></p>
+<p>至此，整个问题现在算比较清晰了！</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>我们来总结下原因，原因是多方面的：</p>
+<ol>
+<li>JVM对反射的优化，导致该接口调用超过15次之后，异常栈中会有<code>GeneratedMethodAccessor&lt;N&gt;</code>类。</li>
+<li>log4j2打印异常栈时，需要额外获取类的所属jar息，版本等额外信息，需要进行类加载。</li>
+<li>在war包模式部署下，加载<code>GeneratedMethodAccessor&lt;N&gt;</code>类时，会同步线性扫描所有jar包，在此过程中会将该jar包中的所有文件构建成一个缓存（最耗时的部分），而jar包模式部署下则只需要一次文件读取，无此问题！</li>
+<li>该缓存构建好之后，默认30s后就会被清理，导致之后的异常请求需要重新构建缓存，继续变慢。</li>
+</ol>
+<p>我们清晰了问题发生的整个过程，其他现象也能解释通了。</p>
+<ol>
+<li><p>Q:为很么当服务刚启动的一段时间内正常，之后才爆出来？</p>
+<blockquote>
+<p>A：准确地讲，应该是服务刚启动的前15次调用正常，之后才会出现该问题。</p>
+</blockquote>
+</li>
+<li><p>Q: 为什么示例项目慢接口为400ms左右，而线上项目长达5s?</p>
+<blockquote>
+<p>A: 示例项目时个精简版项目，只有最基础的spring、log相关的依赖（30）个jar包，而我们线上服务有多达280个依赖，因此耗时更长。</p>
+</blockquote>
+</li>
+<li><p>A：为什么变慢是随机的？</p>
+<blockquote>
+<p>准确地讲，当jar包文件缓存还未被清理前，这时候的请求不会涉及到IO操作（读jar包中的资源），仅仅是从内存操作，因此处理很快。但是当缓存被后台线程清理后，之后的第一个请求又需要重建缓存，开始变慢，并且由于构建缓存时是同步代码，还会影响其他请求。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="问题解法"><a href="#问题解法" class="headerlink" title="问题解法"></a>问题解法</h2><p>既然问题定位清楚了，那么如何解决呢？（其实按道理将，这应该算log4j2本身的一个bug，它未考虑到<code>GeneratedMethodAccessor&lt;N&gt;</code>这种特殊类）</p>
+<ol>
+<li><p>log4j2可以修复这个bug。</p>
+<blockquote>
+<p>短时间内不现实</p>
+</blockquote>
+</li>
+<li><p>使用jar包部署服务。</p>
+<blockquote>
+<p>SpringBoot应用其实更推荐使用jar包部署。使用jar包部署可以规避大部分问题，但是当异常请求量很高时，由于加载<code>GeneratedMethodAccessor&lt;N&gt;</code>时的同步操作，仍然有可能将log4j2中的RingBuffer打满，导致线程block</p>
+</blockquote>
+</li>
+<li><p>对于能明确原因的异常，不用打印异常堆栈，或者精简异常堆栈（比如只打印1层）</p>
+<blockquote>
+<p>比如我们的<code>ServiceException</code>是我们自定义的业务异常，异常原因一般都会放在message中，通过该message能很快定位到问题代码，不需要详细异常堆栈也能排查。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="番外"><a href="#番外" class="headerlink" title="番外"></a>番外</h2><p><code>log4j2.error(message, throwable)</code>这个方法本身就比较慢。在log4j2的tracking list中已经有人提出了这一点，但目前官方还未merge。<br><a href="https://issues.apache.org/jira/browse/LOG4J2-2391?jql=project%20%3D%20LOG4J2%20AND%20resolution%20%3D%20Unresolved%20AND%20text%20~%20%22toExtendedStackTrace%22%20ORDER%20BY%20priority%20DESC%2C%20updated%20DESC" target="_blank" rel="noopener">LOG4J2-2391</a></p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="http://javaquan.com/post/16963_1_1.html" target="_blank" rel="noopener">http://javaquan.com/post/16963_1_1.html</a><br><a href="https://juejin.im/post/5b7d5b34518825430810be8e" target="_blank" rel="noopener">https://juejin.im/post/5b7d5b34518825430810be8e</a><br><a href="https://www.jianshu.com/p/aedee0e14319" target="_blank" rel="noopener">https://www.jianshu.com/p/aedee0e14319</a><br><a href="https://tomcat.apache.org/tomcat-8.5-doc/class-loader-howto.html" target="_blank" rel="noopener">https://tomcat.apache.org/tomcat-8.5-doc/class-loader-howto.html</a><br><a href="https://blog.csdn.net/bigtree_3721/article/details/75947762" target="_blank" rel="noopener">https://blog.csdn.net/bigtree_3721/article/details/75947762</a><br><a href="https://blog.csdn.net/lijunchao1/article/details/76175559" target="_blank" rel="noopener">https://blog.csdn.net/lijunchao1/article/details/76175559</a><br><a href="https://segmentfault.com/a/1190000013532009" target="_blank" rel="noopener">https://segmentfault.com/a/1190000013532009</a><br><a href="https://blog.csdn.net/justloveyou_/article/details/72231425" target="_blank" rel="noopener">https://blog.csdn.net/justloveyou_/article/details/72231425</a></p>
+</section>
+    <!-- Tags START -->
+    
+      <div class="tags">
+        <span>Tags:</span>
+        
+  <a href="/tags#-log4j2 -jvm -classloader">
+    <span class="tag-code">-log4j2 -jvm -classloader</span>
+  </a>
+
+      </div>
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2018/01/22/dfss/">
+        <span class="nav-arrow">← </span>
+        
+          东方时尚科目三考试路线视频下载
+        
+      </a>
+    
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#背景"><span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#排查过程"><span class="toc-nav-text">排查过程</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#代码分析"><span class="toc-nav-text">代码分析</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#远程调试"><span class="toc-nav-text">远程调试</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#灵机一动"><span class="toc-nav-text">灵机一动</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#JProfiler诊断"><span class="toc-nav-text">JProfiler诊断</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#简化复现环境"><span class="toc-nav-text">简化复现环境</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#环境准备"><span class="toc-nav-text">环境准备</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#源码调试"><span class="toc-nav-text">源码调试</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#问题代码定位"><span class="toc-nav-text">问题代码定位</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#ThrowableProxy"><span class="toc-nav-text">ThrowableProxy</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#tomcat类加载机制"><span class="toc-nav-text">tomcat类加载机制</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#log4j2是如何加载类的"><span class="toc-nav-text">log4j2是如何加载类的</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#罪魁祸首：sun-reflect-GeneratedMethodAccessor"><span class="toc-nav-text">罪魁祸首：sun.reflect.GeneratedMethodAccessor\</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#GeneratedMethodAccessor-加载为何如此慢？"><span class="toc-nav-text">GeneratedMethodAccessor\加载为何如此慢？</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#jar包文件缓存失效"><span class="toc-nav-text">jar包文件缓存失效</span></a></li><li class="toc-nav-item toc-nav-level-3"><a class="toc-nav-link" href="#jar包部署为何不慢？"><span class="toc-nav-text">jar包部署为何不慢？</span></a></li></ol></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-text">总结</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#问题解法"><span class="toc-nav-text">问题解法</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#番外"><span class="toc-nav-text">番外</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#参考文献"><span class="toc-nav-text">参考文献</span></a></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://ayonel.github.io/2020/03/09/slf4j2-slow/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "ayonel";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "一次log4j2的慢日志问题排查",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
+        oauth: {
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://ayonel.github.io/2020/03/09/slf4j2-slow/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2020 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>
