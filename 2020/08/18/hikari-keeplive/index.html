@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel的个人博客">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      一个hikari不规范配置引发的数据库连接失活问题探索 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>一个hikari不规范配置引发的数据库连接失活问题探索</h2>
+  <p class="post-date">2020-08-18</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>近日突然收到一条服务告警消息，我们的一个Crane任务执行失败。</p>
+<blockquote>
+<p>Crane: 美团分布式任务调度中间件，支持分布式定时任务调度。可以理解为一个功能更强大的、分布式版的<a href="https://github.com/quartz-scheduler/quartz" target="_blank" rel="noopener">Quartz</a></p>
+</blockquote>
+<p><img src="/2020/08/18/hikari-keeplive/crane-alarm.png" alt="失败信息"></p>
+<p>通过查看日志得出，报错是因为 该任务执行过程中的一次查库操作发生了异常。具体异常为<code>Caused by: com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: No operations allowed after connection closed.</code><br>由于完整异常堆栈过长，截取异常堆栈中最关键的部分，如下所示：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">at org.springframework.jdbc.datasource.DataSourceUtils.getConnection(DataSourceUtils.java:77)</span><br><span class="line">... 56 more</span><br><span class="line">Caused by: com.mysql.jdbc.exceptions.jdbc4.MySQLNonTransientConnectionException: No operations allowed after connection closed.</span><br><span class="line">at sun.reflect.GeneratedConstructorAccessor276.newInstance(Unknown Source)</span><br><span class="line">at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)</span><br><span class="line">at java.lang.reflect.Constructor.newInstance(Constructor.java:422)</span><br><span class="line">at com.mysql.jdbc.Util.handleNewInstance(Util.java:425)</span><br><span class="line">at com.mysql.jdbc.Util.getInstance(Util.java:408)</span><br><span class="line">at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:919)</span><br><span class="line">at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:898)</span><br><span class="line">at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:887)</span><br><span class="line">at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:861)</span><br><span class="line">at com.mysql.jdbc.ConnectionImpl.throwConnectionClosedException(ConnectionImpl.java:1184)</span><br><span class="line">at com.mysql.jdbc.ConnectionImpl.checkClosed(ConnectionImpl.java:1179)</span><br><span class="line">at com.zaxxer.hikari.pool.PoolBase.setNetworkTimeout(PoolBase.java:560)</span><br><span class="line">at com.zaxxer.hikari.pool.PoolBase.isConnectionAlive(PoolBase.java:173)</span><br><span class="line">at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:186)</span><br><span class="line">... 60 more</span><br></pre></td></tr></table></figure></p>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><p>通过异常日志<code>No operations allowed after connection closed.</code>可以看出来这是一个典型的获取到失活数据库连接导致的问题。<br><br>这个问题直白地说就是应用程序从连接池拿到了一个已经dead(失活)的连接，但应用程序并不知道，继续正常利用此连接进行操作，那么就会抛出该异常。 <br><br>那为什么会获取到失活连接呢？这需要从MySQL本身说起。<br><br>我们都知道，对于MySQL而言，连接是很宝贵的资源。虽然我们可以通过搭建MySQL主从集群来<strong>水平扩展读能力</strong>（增加N台从库，意味着可以支持更多的连接，从而提供更高的读吞吐）。但对于写操作或者事务中的读操作仍然是在主库这个单点进行。意味着写操作无法进行水平扩展，其吞吐依然受制于主库的连接能力。<br><br>这也是为什么需要各种同城双活、异地多活、单元化（Set化）架构的原因。这些架构不止提升了服务的可靠性（一旦地域或单元发生故障，可以自动将流量切到其他地域或单元，保证服务不受影响），更能提供多点写入能力，意味着写操作不再受制于单个主库的可支持的最大连接数限制，集群的<strong>写能力也进行了水平扩展</strong>。</p>
+<blockquote>
+<p>多点写入会引来一致性问题，需要专用的数据同步组件来进行跨地域或单元的数据同步，保证数据一致性，其底层会涉及到很多细节，美团使用公司自研的DTS组件来进行Set之间的数据同步。</p>
+</blockquote>
+<p>既然MySQL的连接很宝贵，如果一个客户端连接上MySQL，但是长时间不进行任何读写，白白浪费了这个连接（这就是典型的占着茅坑不拉屎，MySQL单点可支持连接数是有上限的），MySQL会将超过一定时间的空闲连接主动关闭，以清理出资源支持其他活跃连接。在MySQL中有一个参数<code>wait_timeout</code>，用来指定Mysql关闭<strong>非交互空闲连接</strong>之前秒数。<br>我们可以执行<code>show variables like &#39;wait_timeout%&#39;</code>来查看该参数。</p>
+<p><img src="/2020/08/18/hikari-keeplive/wait_timeout.png" alt="wait_timeout"><br>从图中可以看出我们的MySQL该参数值为默认值28800秒，即8小时。意味着如果一个连接已经空闲了超过8小时，MySQL会主动关闭该连接。但此时客户端并不会感知到连接的不可用，如果继续使用该失活连接，就会报出<code>No operations allowed after connection closed.</code></p>
+<h1 id="连接池的保活机制-keepalive"><a href="#连接池的保活机制-keepalive" class="headerlink" title="连接池的保活机制-keepalive"></a>连接池的保活机制-keepalive</h1><p>一般我们都会使用数据库连接池来进行连接的管理，如druid，c3p0, hikari或者tomcat-jdbc等等。那么对于失活连接的检测以及剔除就需要这些连接池来帮我们做。<br><br>比如对于druid，会提供以下几个参数来处理该问题：</p>
+<ul>
+<li><strong>testOnBorrow=true</strong> : 从连接池获取连接时，进行探活。该参数为true，保证从连接池中拿到的连接都是有效的，但会很消耗性能（线上服务不推荐开启）。其一般做法为获取连接时执行一个testQuery（比如<code>select 1</code>）,如果可以执行成功，则代表连接有效。</li>
+<li><strong>testWhileIdle=true</strong> : 只对空闲连接进行探活检测，需要timeBetweenEvictionRunsMillis配合，</li>
+<li><strong>timeBetweenEvictionRunsMillis=30000</strong> : 该参数指定对空闲连接进行检测的间隔，如此配置代表30进行一轮检测。一般检测到一个空闲连接失活后，会剔除出连接池，保证业务进程获取到的都有有效连接。</li>
+</ul>
+<p>我们使用的是<a href="https://github.com/brettwooldridge/HikariCP" target="_blank" rel="noopener">HikariCP</a>连接池。这是一个高性能、轻量的数据库连接池，正如其名字一样（hikari在日文中是<code>光</code>的意思）。Springboot 2.0以后已经将hikari作为默认的连接池实现，证明该连接池确实很牛逼，未来发展也是十分看好。<br><br>hikari为什么快呢？这里贴一下<a href="https://www.jianshu.com/p/dd0c2b0ed202" target="_blank" rel="noopener">网上别人总结的几条</a>：</p>
+<ul>
+<li>使用Javassist优化并精简字节码</li>
+<li>ConcurrentBag: 更好的并发集合类实现</li>
+<li>使用自定义的FastList替代ArrayList</li>
+</ul>
+<blockquote>
+<p>目前国内可能使用更多的连接池是druid，关于druid与hikari的性能对比，hikari作者给出了一个benchmark, druid作者温少也参与了评论：<a href="https://github.com/brettwooldridge/HikariCP/issues/232。" target="_blank" rel="noopener">https://github.com/brettwooldridge/HikariCP/issues/232。</a> </p>
+</blockquote>
+<p>那hikari如何解决失活连接探测问题呢？需要以下两个参数控制：</p>
+<ul>
+<li><strong>maxLifetime</strong>:<blockquote>
+<p>This property controls the maximum lifetime of a connection in the pool. An in-use connection will never be retired, only when it is closed will it then be removed. On a connection-by-connection basis, minor negative attenuation is applied to avoid mass-extinction in the pool. We strongly recommend setting this value, and it should be several seconds shorter than any database or infrastructure imposed connection time limit. A value of 0 indicates no maximum lifetime (infinite lifetime), subject of course to the idleTimeout setting. The minimum allowed value is 30000ms (30 seconds). Default: 1800000 (30 minutes)</p>
+</blockquote>
+</li>
+</ul>
+<p>这个参数控制了连接在hikari中的最长存活时间（<strong>这句话存疑，本例case就是一个活生生的反例</strong>）。hikari强烈建议设置该值，该值需要比数据库或者<strong>基础设施（划重点）</strong>的（空闲）连接时间限制要短一点。默认值30分钟。</p>
+<ul>
+<li><strong>idleTimeout</strong><blockquote>
+<p>This property controls the maximum amount of time that a connection is allowed to sit idle in the pool. This setting only applies when minimumIdle is defined to be less than maximumPoolSize. Idle connections will not be retired once the pool reaches minimumIdle connections. Whether a connection is retired as idle or not is subject to a maximum variation of +30 seconds, and average variation of +15 seconds. A connection will never be retired as idle before this timeout. A value of 0 means that idle connections are never removed from the pool. The minimum allowed value is 10000ms (10 seconds). Default: 600000 (10 minutes)</p>
+</blockquote>
+</li>
+</ul>
+<p>这个参数控制了一个<strong>空闲连接</strong>能够在hikari中能够存活的最长时间，只有当<code>minimumIdle</code>比<code>maxiumnPoolSize</code>小时，才会生效。最小值10秒，默认值10分钟。</p>
+<h1 id="配置分析"><a href="#配置分析" class="headerlink" title="配置分析"></a>配置分析</h1><p>了解了hikari的连接保活机制，我们再来看下线上的参数配置，看是不是由于参数设置不合理引发。我们的线上配置如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">jdbcUrl: jdbc:mysql://data-mysql-cantor-read.***.***:5002/cantor?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false</span><br><span class="line"># hikari配置中的所有时间单位均为毫秒, 具体可参考：https://github.com/brettwooldridge/HikariCP</span><br><span class="line">type: com.zaxxer.hikari.HikariDataSource</span><br><span class="line"># 连接获取超时时间</span><br><span class="line">connectionTimeout: 10000</span><br><span class="line"># 连接最大生命周期: 半小时，保证比wait_timeout小即可。线上cantor库的wait_timeout=8小时</span><br><span class="line">maxLifetime: 1800000</span><br><span class="line"># minIdle以外的空闲连接存活时间，半小时</span><br><span class="line">idleTimeout: 1800000</span><br><span class="line"># 最小空闲连接数量</span><br><span class="line">minimumIdle: 2</span><br><span class="line"># 最大连接数量，默认为10</span><br><span class="line">maximumPoolSize: 10</span><br><span class="line">poolName: cantor_read_connenction_pool</span><br></pre></td></tr></table></figure></p>
+<p>可以看出连接的最大生命周期为半小时，且空闲连接也是半小时会检测一轮。这远小于线上MySQL的配置（8小时），那为什么会获取失活连接呢？ <br><br>我摸摸我可爱的小头，顿时觉得此事不简单~ <br><br>经过咨询DBA，提供了一个重要线索：从配置中可以看出，我们使用的是vip域名进行连接。而一旦使用域名进行连接，意味着客户端与MYSQL的请求并不是直连，而需要经过美团的四层负载均衡MGW, MGW对空闲连接也有类似的超时主动关闭机制。经过咨询SRE同事，得出我们所使用的MGW超时时间为<strong>3500秒</strong>（可以，已经比8小时缩短了很多，排查出问题的原因胜利在望）。<br><br>这时候回想hikari文档中对于<code>maxLifetime</code>的介绍：should be several seconds shorter than any database or <strong>infrastructure</strong> imposed connection time limit，这个<strong>infrastructure</strong>在我们的case中就是指MGW,该参数并不仅仅只受数据库的限制，还需要依赖基础网络设值限制，hikari作者这老头子还是经验老道啊。</p>
+<blockquote>
+<p>MGW（Meituan Gateway）是一个基于DPDK开发的四层负载均衡网关（LVS有类似的功能）并做了额外的功能定制，其特点是高性能，高稳定。</p>
+</blockquote>
+<blockquote>
+<p>这里解释一下我们会什么采用jdbcUrl这种类似直连的方式，并没有使用公司内部统一的数据库中间件。<br>本文中出现的这个数据源并不是我们本身的业务数据源，而是另一个服务的数据源，由于历史原因，一直使用域名这种方式直接查询该服务的一些数据。<br>其实这种db层面的耦合是一个很不好的设计。并且使用数据库时，最好使用公司的统一数据库中间件，比如我们的主业务使用<a href="https://github.com/Meituan-Dianping/Zebra" target="_blank" rel="noopener">zebra</a><br>使用数据中间件能带来诸多好处，如自动读写分离，透明分库分表，有统一的监控可以合入公司内部统一的服务治理体系，更重要的是对DBA友好~ 比如接入了zebra之后，DBA可以按语句进行流量拦截操作，这个功能是十分重要的。</p>
+</blockquote>
+<p>虽然经过我们的一番排查，空闲连接实际存活不会超过3500秒，但我们明明配置的连接生命周期是1800秒，空闲连接探活周期也是1800秒，那为什么还是会出现拿到失活连接的问题呢？<br><br>这个问题我们只能从源码中去寻找答案。</p>
+<h1 id="hikari-源码分析"><a href="#hikari-源码分析" class="headerlink" title="hikari 源码分析"></a>hikari 源码分析</h1><h2 id="idleTimeout原理解析"><a href="#idleTimeout原理解析" class="headerlink" title="idleTimeout原理解析"></a>idleTimeout原理解析</h2><p>我们先来看看hikari如何进行空闲连接的探活，也即<code>idleTimeout</code>是怎么生效的。在<code>com.zaxxer.hikari.pool.HikariPool</code>中的<code>HouseKeeper</code>(翻译:管家)任务类，<br>该任务类由一个定时调度线程池进行周期性调度，默认每30秒执行一次。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">//**</span><br><span class="line"> * HouseKeeper这个任务类用来回收空闲连接，并保持连接数不少于minimunIdle参数</span><br><span class="line"> * The house keeping task to retire and maintain minimum idle connections.</span><br><span class="line"> */</span><br><span class="line">// </span><br><span class="line">private final class HouseKeeper implements Runnable</span><br><span class="line">&#123;</span><br><span class="line">   private volatile long previous = plusMillis(currentTime(), -housekeepingPeriodMs);</span><br><span class="line"></span><br><span class="line">   @Override</span><br><span class="line">   public void run()</span><br><span class="line">   &#123;</span><br><span class="line">      try &#123;</span><br><span class="line">         // refresh values in case they changed via MBean</span><br><span class="line">         connectionTimeout = config.getConnectionTimeout();</span><br><span class="line">         validationTimeout = config.getValidationTimeout();</span><br><span class="line">         leakTaskFactory.updateLeakDetectionThreshold(config.getLeakDetectionThreshold());</span><br><span class="line">         catalog = (config.getCatalog() != null &amp;&amp; !config.getCatalog().equals(catalog)) ? config.getCatalog() : catalog;</span><br><span class="line"></span><br><span class="line">         final long idleTimeout = config.getIdleTimeout();</span><br><span class="line">         final long now = currentTime();</span><br><span class="line"></span><br><span class="line">         // 处理时钟回退问题</span><br><span class="line">         // Detect retrograde time, allowing +128ms as per NTP spec.</span><br><span class="line">         if (plusMillis(now, 128) &lt; plusMillis(previous, housekeepingPeriodMs)) &#123;</span><br><span class="line">            logger.warn(&quot;&#123;&#125; - Retrograde clock change detected (housekeeper delta=&#123;&#125;), soft-evicting connections from pool.&quot;,</span><br><span class="line">                        poolName, elapsedDisplayString(previous, now));</span><br><span class="line">            previous = now;</span><br><span class="line">            softEvictConnections();</span><br><span class="line">            return;</span><br><span class="line">         &#125;</span><br><span class="line">         else if (now &gt; plusMillis(previous, (3 * housekeepingPeriodMs) / 2)) &#123;</span><br><span class="line">            // No point evicting for forward clock motion, this merely accelerates connection retirement anyway</span><br><span class="line">            logger.warn(&quot;&#123;&#125; - Thread starvation or clock leap detected (housekeeper delta=&#123;&#125;).&quot;, poolName, elapsedDisplayString(previous, now));</span><br><span class="line">         &#125;</span><br><span class="line"></span><br><span class="line">         previous = now;</span><br><span class="line"></span><br><span class="line">         String afterPrefix = &quot;Pool &quot;;</span><br><span class="line">         // 关键判断条件，如果idleTimeout参数大于0，且minimumIdle &lt; maximumPoolSize，则进行空闲连接回收</span><br><span class="line">         if (idleTimeout &gt; 0L &amp;&amp; config.getMinimumIdle() &lt; config.getMaximumPoolSize()) &#123;</span><br><span class="line">            logPoolState(&quot;Before cleanup &quot;);</span><br><span class="line">            afterPrefix = &quot;After cleanup  &quot;;</span><br><span class="line"></span><br><span class="line">            final List&lt;PoolEntry&gt; notInUse = connectionBag.values(STATE_NOT_IN_USE);</span><br><span class="line">            // 判断最多需要移除几个连接</span><br><span class="line">            int toRemove = notInUse.size() - config.getMinimumIdle();</span><br><span class="line">            for (PoolEntry entry : notInUse) &#123;</span><br><span class="line">               // 如果连接的上次使用时间距今是否已经过去了idleTimeout</span><br><span class="line">               if (toRemove &gt; 0 &amp;&amp; elapsedMillis(entry.lastAccessed, now) &gt; idleTimeout &amp;&amp; connectionBag.reserve(entry)) &#123;</span><br><span class="line">                  // 关闭连接</span><br><span class="line">                  closeConnection(entry, &quot;(connection has passed idleTimeout)&quot;);</span><br><span class="line">                  toRemove--;</span><br><span class="line">               &#125;</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">         // 记录日志</span><br><span class="line">         logPoolState(afterPrefix);</span><br><span class="line"></span><br><span class="line">         // 填充连接池，维持最小连接数</span><br><span class="line">         fillPool(); // Try to maintain minimum connections</span><br><span class="line">      &#125;</span><br><span class="line">      catch (Exception e) &#123;</span><br><span class="line">         logger.error(&quot;Unexpected exception in housekeeping task&quot;, e);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上述代码我们可以得出2个关键信息：</p>
+<ul>
+<li><strong>只有 <code>idleTimeout &gt; 0</code> 才会进行空闲连接回收</strong></li>
+<li><strong>只有 <code>minimumIdle &lt; maximumPoolSize</code>才会进行空闲连接回收</strong><br>这两个结论很重要，请记住，下文会用到。</li>
+</ul>
+<h2 id="maxLifetime原理解析"><a href="#maxLifetime原理解析" class="headerlink" title="maxLifetime原理解析"></a>maxLifetime原理解析</h2><p>我们接着来看<code>maxLifetime</code>是如何生效的，该参数在连接池创建连接时会用到。具体来看在<code>com.zaxxer.hikari.pool.HikariPool</code>中的<code>createPoolEntry</code>方法。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/** 如果maxLifetime配置了（并且需要大于10000ms）,创建一个单次回收任务，执行时机为maxLifetime前后浮动2.5%，避免瞬时回收大量连接</span><br><span class="line"> * Creating new poolEntry.  If maxLifetime is configured, create a future End-of-life task with 2.5% variance from</span><br><span class="line"> * the maxLifetime time to ensure there is no massive die-off of Connections in the pool.</span><br><span class="line"> */</span><br><span class="line">private PoolEntry createPoolEntry()</span><br><span class="line">&#123;</span><br><span class="line">   try &#123;</span><br><span class="line">      // 创建一个poolEntry对象，该对象是实际连接的包装</span><br><span class="line">      final PoolEntry poolEntry = newPoolEntry();</span><br><span class="line">      // 获取maxLifetime配置值</span><br><span class="line">      final long maxLifetime = config.getMaxLifetime();</span><br><span class="line">      if (maxLifetime &gt; 0) &#123;</span><br><span class="line">         // variance up to 2.5% of the maxlifetime</span><br><span class="line">         // 回收时间为maxLifetime 前后浮动 2.5%</span><br><span class="line">         final long variance = maxLifetime &gt; 10_000 ? ThreadLocalRandom.current().nextLong( maxLifetime / 40 ) : 0;</span><br><span class="line">         final long lifetime = maxLifetime - variance;</span><br><span class="line">         // 在schedule线程池中提交一个单次执行任务，用于回收该连接</span><br><span class="line">         poolEntry.setFutureEol(houseKeepingExecutorService.schedule(</span><br><span class="line">            () -&gt; &#123;</span><br><span class="line">               if (softEvictConnection(poolEntry, &quot;(connection has passed maxLifetime)&quot;, false /* not owner */)) &#123;</span><br><span class="line">                  // 如果回收成功，需要判断需不需要创建新的连接来替代</span><br><span class="line">                  addBagItem(connectionBag.getWaitingThreadCount());</span><br><span class="line">               &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            lifetime, MILLISECONDS));</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">      return poolEntry;</span><br><span class="line">   &#125;</span><br><span class="line">   catch (ConnectionSetupException e) &#123;</span><br><span class="line">      if (poolState == POOL_NORMAL) &#123; // we check POOL_NORMAL to avoid a flood of messages if shutdown() is running concurrently</span><br><span class="line">         logger.error(&quot;&#123;&#125; - Error thrown while acquiring connection from data source&quot;, poolName, e.getCause());</span><br><span class="line">         lastConnectionFailure.set(e);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   catch (Exception e) &#123;</span><br><span class="line">      if (poolState == POOL_NORMAL) &#123; // we check POOL_NORMAL to avoid a flood of messages if shutdown() is running concurrently</span><br><span class="line">         logger.debug(&quot;&#123;&#125; - Cannot acquire connection from data source&quot;, poolName, e);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">  </span><br><span class="line">   return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们再来看下具体的回收代码，在<code>softEvictConnection</code>方法中：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"> /**</span><br><span class="line"> * &quot;Soft&quot; evict a Connection (/PoolEntry) from the pool.  If this method is being called by the user directly</span><br><span class="line"> * through &#123;@link com.zaxxer.hikari.HikariDataSource#evictConnection(Connection)&#125; then &#123;@code owner&#125; is &#123;@code true&#125;.</span><br><span class="line"> *</span><br><span class="line"> * If the caller is the owner, or if the Connection is idle (i.e. can be &quot;reserved&quot; in the &#123;@link ConcurrentBag&#125;),</span><br><span class="line"> * then we can close the connection immediately.  Otherwise, we leave it &quot;marked&quot; for eviction so that it is evicted</span><br><span class="line"> * the next time someone tries to acquire it from the pool.</span><br><span class="line"> *</span><br><span class="line"> * @param poolEntry the PoolEntry (/Connection) to &quot;soft&quot; evict from the pool</span><br><span class="line"> * @param reason the reason that the connection is being evicted</span><br><span class="line"> * @param owner true if the caller is the owner of the connection, false otherwise</span><br><span class="line"> * @return true if the connection was evicted (closed), false if it was merely marked for eviction</span><br><span class="line"> */</span><br><span class="line">private boolean softEvictConnection(final PoolEntry poolEntry, final String reason, final boolean owner)</span><br><span class="line">&#123;</span><br><span class="line">    // 先将poolEntry标记为待清除</span><br><span class="line">   poolEntry.markEvicted();</span><br><span class="line">   // 先从connectionBag中回收该对象</span><br><span class="line">   if (owner || connectionBag.reserve(poolEntry)) &#123;</span><br><span class="line">      // 再物理关闭连接</span><br><span class="line">      closeConnection(poolEntry, reason);</span><br><span class="line">      return true;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   return false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到是否真正回收是有一个条件的，具体看看<code>connectionBag.reserve</code>方法：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"> /**</span><br><span class="line"> * The method is used to make an item in the bag &quot;unavailable&quot; for</span><br><span class="line"> * borrowing.  It is primarily used when wanting to operate on items</span><br><span class="line"> * returned by the &lt;code&gt;values(int)&lt;/code&gt; method.  Items that are</span><br><span class="line"> * reserved can be removed from the bag via &lt;code&gt;remove(T)&lt;/code&gt;</span><br><span class="line"> * without the need to unreserve them.  Items that are not removed</span><br><span class="line"> * from the bag can be make available for borrowing again by calling</span><br><span class="line"> * the &lt;code&gt;unreserve(T)&lt;/code&gt; method.</span><br><span class="line"> *</span><br><span class="line"> * @param bagEntry the item to reserve</span><br><span class="line"> * @return true if the item was able to be reserved, false otherwise</span><br><span class="line"> */</span><br><span class="line">public boolean reserve(final T bagEntry)</span><br><span class="line">&#123;    </span><br><span class="line">   // CAS操作，替换pollEntry的状态为RESERVED</span><br><span class="line">   return bagEntry.compareAndSet(STATE_NOT_IN_USE, STATE_RESERVED);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看出来，进行回收时，<strong>是需要判断一下该连接是否正在使用中，如果正在使用中，那就不会进行回收。</strong></p>
+<p>顺便来看下pollEntry的几个状态转换流程吧：<br><img src="/2020/08/18/hikari-keeplive/state.png" alt="state状态机"></p>
+<p>pollEntry只有4个状态：</p>
+<ul>
+<li><strong>NOT_IN_USE</strong>: 未使用</li>
+<li><strong>IN_USE</strong>: 使用中</li>
+<li><strong>RESERVED</strong>: 待回收，该标记意味着该连接不可用，不能从连接池中进行获取</li>
+<li><strong>REMOVED</strong>: 已回收</li>
+</ul>
+<p>经过源码分析我们得出：</p>
+<ul>
+<li>创建新连接时，会自动注册一个<code>maxLifetime</code>时间后进行的回收操作，具体时间为<code>maxLifetime</code>前后浮动2.5%（这是个一次性动作）</li>
+<li>执行回收时，如果连接在<strong>IN_USE</strong>状态，则不会进行回收。</li>
+</ul>
+<p>经过上面的分析，对于hikari的连接保活机制我们有了一个清晰的认识，共有两个地方会触发连接回收：</p>
+<ol>
+<li>连接的生命周期到达<code>maxLifetime</code></li>
+<li>连接的空闲时间到达<code>idleTimeout</code></li>
+</ol>
+<h1 id="猜想"><a href="#猜想" class="headerlink" title="猜想"></a>猜想</h1><p>上面的回收机制，有漏洞可钻吗？假设有如下case：</p>
+<ol>
+<li>如果maxLifetime时间到后，进行回收时，该连接正巧还在使用中，也即是<strong>IN_USE</strong>状态，那么此次回收动作无效。</li>
+<li>如果1中的回收无效，那么只能利用<code>HouseKeeper</code>的周期性任务做兜底，保证连接空闲时间达到<code>idleTimeout</code>后被回收。</li>
+</ol>
+<p>那么问题来了？<code>HouseKeeper</code>周期任务会100%回收空闲连接吗? 我们重新看下回收的两个必要条件：</p>
+<ul>
+<li><strong>只有 <code>idleTimeout &gt; 0</code> 才会进行空闲连接回收</strong></li>
+<li><strong>只有 <code>minimumIdle &lt; maximumPoolSize</code>才会进行空闲连接回收</strong></li>
+</ul>
+<p>在我们的case中，<code>minimumIdle(2) &lt; maximumPoolSize(10)</code>条件成立。<br>那么只剩下<code>idleTimeout &gt; 0</code> ，但我们明明指定的<code>idleTimeout=1800000</code>是半小时呀？</p>
+<p>看似一切正常，实则这个地方有个坑！通过查看hikari线程池启动的代码：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">if (idleTimeout + SECONDS.toMillis(1) &gt; maxLifetime &amp;&amp; maxLifetime &gt; 0 &amp;&amp; minIdle &lt; maxPoolSize) &#123;</span><br><span class="line">    LOGGER.warn(&quot;&#123;&#125; - idleTimeout is close to or more than maxLifetime, disabling it.&quot;, poolName);</span><br><span class="line">    idleTimeout = 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>发现：<code>idleTimeout &gt;= maxLifeTime</code> 且 <code>minIdle &lt; maxPoolSize</code>的话，<strong>会将<code>idleTimeout</code>置为0</strong></p>
+<blockquote>
+<p>hikari在启动过程中会校验用户设置的一些参数，如果参数不合理，会进行一些校正或着抛错。</p>
+</blockquote>
+<p>现在再来看看我们的配置：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">maxLifetime: 1800000</span><br><span class="line">idleTimeout: 1800000</span><br></pre></td></tr></table></figure></p>
+<p>这两个参数我们都设置成了1800000毫秒，导致触发了<code>idleTimeout</code>的校正（归0）。</p>
+<p>所以，问题应该定位到了：</p>
+<ol>
+<li><strong>到达<code>maxLifeTime</code>后，回收连接是，该连接碰巧在IN_USE状态 </strong></li>
+<li><strong>由于我们的参数设置有误(<code>idleTimeout &gt;= maxLifeTime</code>), 导致并不会进行<code>HouseKeeper</code>周期回收空闲连接任务，这个兜底策略并没有执行。因此该连接永久地留在了连接池中，且状态是NOT_IN_USE<br>可被正常获取。如果该连接空闲时间达到3500秒后，被MGW检测到超时并关闭，如果之后再获取到该连接并进行操作，则会爆出<code>No operations allowed after connection closed.</code></strong></li>
+</ol>
+<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p>基于以上猜想，我在本地进行了实验。首先我们调整下本地环境的hikari配置, 便于复现问题：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 30秒，maxLifetime的最小值</span><br><span class="line">maxLifetime: 30001</span><br><span class="line"># 30秒</span><br><span class="line">idleTimeout: 30001</span><br><span class="line">minimumIdle: 1</span><br><span class="line">maximumPoolSize: 2</span><br></pre></td></tr></table></figure>
+<p>由于MGW是公司基础组件，其空闲连接超时时间我们无法控制，但我们可以证明，如果一个连接生命周期超过<code>maxLifetime</code>且，空闲时间超过<code>idleTimeout</code>, 即意味着该连接并未被合理释放，问题得证。</p>
+<p>请看以下测试代码，hikari线程池中的很多内部信息并不对外暴露，需要利用反射来获取。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class HikariTestService &#123;</span><br><span class="line">    // case中的mapper，进行真是的查库操作，占用数据库连接</span><br><span class="line">    @Autowired</span><br><span class="line">    private CantorTaskMapper cantorTaskMapper;  </span><br><span class="line">    </span><br><span class="line">    // 注入case中的hikari数据源，需要通过该数据源拿到具体的连接池        </span><br><span class="line">    @Resource(name = &quot;cantor&quot;)</span><br><span class="line">    private HikariDataSource hikariDataSource;</span><br><span class="line">    </span><br><span class="line">    // 线程池，用于触发查库操作</span><br><span class="line">    ExecutorService executorService = Executors.newFixedThreadPool(10);</span><br><span class="line"></span><br><span class="line">    public String test() throws InterruptedException &#123;</span><br><span class="line">        // 提前触发连接池初始化，此时连接池中会常见2个连接</span><br><span class="line">        for (int i = 0; i &lt; 2; i++) &#123;</span><br><span class="line">            executorService.submit(() -&gt; &#123;</span><br><span class="line">                // 实际执行select sleep(1), 占用连接1秒</span><br><span class="line">                cantorTaskMapper.test(1);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // 确保上面的任务已经开始执行，即连接池已经初始化</span><br><span class="line">        TimeUnit.SECONDS.sleep(10);</span><br><span class="line">        </span><br><span class="line">        for (int i = 0; i &lt; 2; i++) &#123;</span><br><span class="line">            executorService.submit(() -&gt; &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    // 休息到18秒，加上前面等待的10秒，执行完后大约过去了28秒</span><br><span class="line">                &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                // 开始持续占用连接5秒，从28秒到30秒</span><br><span class="line">                cantorTaskMapper.test(5);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        // 开始进行监控，执行到此时，主线程休眠了10秒</span><br><span class="line">        watchdog(5);</span><br><span class="line">        return &quot;ok&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 定时周期调度任务线程池</span><br><span class="line">    ScheduledExecutorService scheduledExecutor;</span><br><span class="line">    </span><br><span class="line">    // 定时输出线程池中的连接状态，及存活时间。</span><br><span class="line">    public void watchdog(int delay) &#123;</span><br><span class="line">        // 判空操作，保证此逻辑单例</span><br><span class="line">        if (scheduledExecutor == null) &#123;</span><br><span class="line">            scheduledExecutor = Executors.newSingleThreadScheduledExecutor();</span><br><span class="line">            try &#123;</span><br><span class="line">                // 通过反射在HikariDataSource中获取pool字段 (HikariPool)</span><br><span class="line">                Field poolField = HikariDataSource.class.getDeclaredField(&quot;pool&quot;);</span><br><span class="line">                poolField.setAccessible(true);</span><br><span class="line">                HikariPool hikariPool = (HikariPool) poolField.get(hikariDataSource);</span><br><span class="line"></span><br><span class="line">                // 通过反射在HiKariPool中获取connectionBag字段 (ConcurrentBag)</span><br><span class="line">                Field connectionBagField = HikariPool.class.getDeclaredField(&quot;connectionBag&quot;);</span><br><span class="line">                connectionBagField.setAccessible(true);</span><br><span class="line">                ConcurrentBag concurrentBag = (ConcurrentBag) connectionBagField.get(hikariPool);</span><br><span class="line"></span><br><span class="line">                // 通过反射在 ConcurrentBag中获取sharedList (CopyOnWriteArrayList&lt;PoolEntry&gt;)</span><br><span class="line">                Field sharedListField = ConcurrentBag.class.getDeclaredField(&quot;sharedList&quot;);</span><br><span class="line">                sharedListField.setAccessible(true);</span><br><span class="line">                CopyOnWriteArrayList sharedList = (CopyOnWriteArrayList) sharedListField.get(concurrentBag);</span><br><span class="line"></span><br><span class="line">                // k: PollEntry对象, 可以任务是数据库连接， value: 该连接的存货时间，单位:秒</span><br><span class="line">                Map&lt;Object, Integer&gt; survivalMap = new ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">                scheduledExecutor.scheduleWithFixedDelay(() -&gt; &#123;</span><br><span class="line">                    StringBuilder sb = new StringBuilder();</span><br><span class="line">                    for (Object pollEntry : sharedList) &#123;</span><br><span class="line">                        // 补偿初始化之后最开始TimeUnit.SECONDS.sleep(10) 的10秒</span><br><span class="line">                        survivalMap.putIfAbsent(pollEntry, 10);</span><br><span class="line">                        // 获取PollEntry对象在JVM中的地址</span><br><span class="line">                        sb.append(System.identityHashCode(pollEntry));</span><br><span class="line">                        sb.append(&quot;:&quot;);</span><br><span class="line">                        try &#123;</span><br><span class="line">                            // 反射获取PollEntry的stateToString方法</span><br><span class="line">                            Method stateMethod = pollEntry.getClass().getDeclaredMethod(&quot;stateToString&quot;);</span><br><span class="line">                            stateMethod.setAccessible(true);</span><br><span class="line">                            sb.append(stateMethod.invoke(pollEntry));</span><br><span class="line">                        &#125; catch (Exception e) &#123;</span><br><span class="line">                            e.printStackTrace();</span><br><span class="line">                        &#125;</span><br><span class="line">                        sb.append(&quot;:&quot;);</span><br><span class="line">                        sb.append(survivalMap.get(pollEntry));</span><br><span class="line">                        sb.append(&quot;,\t&quot;);</span><br><span class="line">                        // 存活时间增加一个周期</span><br><span class="line">                        survivalMap.computeIfPresent(pollEntry, (k, v) -&gt; v + delay);</span><br><span class="line">                    &#125;</span><br><span class="line">                    // 输出连接池中的连接状态</span><br><span class="line">                    log.info(sb.toString());</span><br><span class="line">                &#125;, 0, delay, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">            &#125; catch (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>cantorTaskMapper.test</code> 实际是在执行：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;select id=&quot;test&quot; resultType=&quot;java.lang.String&quot;&gt;</span><br><span class="line">  select sleep(#&#123;sleepSeconds&#125;);</span><br><span class="line">&lt;/select&gt;</span><br></pre></td></tr></table></figure></p>
+<p>先大概解释下上述测试代码：</p>
+<ol>
+<li>一开始并行执行两个查库操作，触发线程池初始化，并创建两个连接</li>
+<li>主线程线程休眠10秒，确保1中的初始化完成，连接建立完成</li>
+<li>开始并行执行两个操作，这两个操作先休息到18秒（此时已经过去了10+18=28秒），然后持续查库5秒，在这5秒内会执行<code>maxLifetime</code>的最大生命周期回收。<blockquote>
+<p>计算<code>lifetime</code>前后浮动2.5%, <code>maxLifetime</code>回收时间在29.25~30.75之间，而我们的查库操作持续在28~33区间，因此回收时连接状态肯定是<strong>IN_USE</strong>，回收无效。</p>
+</blockquote>
+</li>
+</ol>
+<p>启动服务后，执行<code>test()</code>方法，我们观察输出：<br><img src="/2020/08/18/hikari-keeplive/test.png" alt="实验结果"><br>可以观察到，连接创建出来之后，一直存活到了80秒。（其实会一直存活下去，笔者主动kill了进程）。<br>实验结果服务符合预期：</p>
+<ol>
+<li>连接在<code>maxLifetime</code>回收时，正巧在<strong>IN_USE</strong>，逃过一劫。</li>
+<li><code>idleTimeout</code>周期回收任务并未启动，导致连接一直在连接池中存活了下去。</li>
+</ol>
+<p>可以想象，如果连接空闲一直到3500s，被MGW主动关闭，之后我们再进行一次操作，便会获取到这两个失活连接, 进而报错。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>我们通过阅读源码以及实验，验证了由<code>idleTimeout</code> &gt;= <code>maxLifetime</code>错误配置导致的问题。使用一个组件时一定需要知晓其原理，多进行测试（其实当出现这个错误配置时，hikari已经报了一个WARN日志, 但被忽略了orz…）</p>
+<p>另外，hikari代码十分短小精悍，但却蕴含着很多设计思想，推荐大家进行源码阅读。</p>
+</section>
+    <!-- Tags START -->
+    
+      <div class="tags">
+        <span>Tags:</span>
+        
+  <a href="/tags#hikari">
+    <span class="tag-code">hikari</span>
+  </a>
+
+  <a href="/tags#mysql">
+    <span class="tag-code">mysql</span>
+  </a>
+
+      </div>
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2020/08/16/servlet-api-conflicts/">
+        <span class="nav-arrow">← </span>
+        
+          一次有趣的jar包冲突问题排查
+        
+      </a>
+    
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#背景"><span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#问题分析"><span class="toc-nav-text">问题分析</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#连接池的保活机制-keepalive"><span class="toc-nav-text">连接池的保活机制-keepalive</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#配置分析"><span class="toc-nav-text">配置分析</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#hikari-源码分析"><span class="toc-nav-text">hikari 源码分析</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#idleTimeout原理解析"><span class="toc-nav-text">idleTimeout原理解析</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#maxLifetime原理解析"><span class="toc-nav-text">maxLifetime原理解析</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#猜想"><span class="toc-nav-text">猜想</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#验证"><span class="toc-nav-text">验证</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-text">总结</span></a></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://ayonel.github.io/2020/08/18/hikari-keeplive/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "ayonel";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "一个hikari不规范配置引发的数据库连接失活问题探索",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
+        oauth: {
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://ayonel.github.io/2020/08/18/hikari-keeplive/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2020 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'false';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>

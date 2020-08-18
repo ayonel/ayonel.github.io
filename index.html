@@ -141,6 +141,35 @@
   
     <article class="article-card">
       <h2 class="article-head">
+        <a href="/2020/08/18/hikari-keeplive/">一个hikari不规范配置引发的数据库连接失活问题探索</a>
+      </h2>
+      <p class="article-date">August 18, 2020</p>
+      
+        
+  <a href="/tags#hikari">
+    <span class="tag-code">hikari</span>
+  </a>
+
+  <a href="/tags#mysql">
+    <span class="tag-code">mysql</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          背景近日突然收到一条服务告警消息，我们的一个Crane任务执行失败。
+
+Crane: 美团分布式任务调度中间件，支持分布式定时任务调度。可以理解为一个功能更强大的、分布式版的Quartz
+
+
+通过查看日志得出，报错是因为 该任务执行过程中的一次查库操作发生了异常。具体异常为Caused by ...
+        
+      </div>
+      <a class="more" href="/2020/08/18/hikari-keeplive/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
         <a href="/2020/08/16/servlet-api-conflicts/">一次有趣的jar包冲突问题排查</a>
       </h2>
       <p class="article-date">August 16, 2020</p>
@@ -153,13 +182,13 @@
       
       <div class="article-summary">
         
-          背景最近同事开发时遇到一个比较诡异的问题：
+          背景最近同事在开发时遇到一个比较诡异的问题：
 
 在项目打包好之后启动时，报org.apache.catalina.LifecycleException: A child container failed during start
 
 这个错误，且从日志中找不到任何额外的有用出错信息。
 
-奇怪的是 ...
+奇怪的 ...
         
       </div>
       <a class="more" href="/2020/08/16/servlet-api-conflicts/">Read more</a>
@@ -338,27 +367,6 @@ jasper的SVM入门教程，总共 ...
         
       </div>
       <a class="more" href="/2016/12/21/largest-subvector/">Read more</a>
-    </article>
-  
-    <article class="article-card">
-      <h2 class="article-head">
-        <a href="/2016/11/25/windows-install-scipy/">windows 平台下python 安装scipy</a>
-      </h2>
-      <p class="article-date">November 25, 2016</p>
-      
-        
-  <a href="/tags#Python">
-    <span class="tag-code">Python</span>
-  </a>
-
-      
-      <div class="article-summary">
-        
-          scipy是python下的一个数值计算工具包，sklearn依赖于这个包。当我调用sklearn的CountVectorizer时，提示没有发现包scipy，直接安装又总是失败。   
-问题就在于 scipy的安装需要依赖很多别的包，在windows这个蛋疼的平台下极有可能安装失败。并且在 ...
-        
-      </div>
-      <a class="more" href="/2016/11/25/windows-install-scipy/">Read more</a>
     </article>
   
 
