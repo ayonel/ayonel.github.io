@@ -190,7 +190,7 @@
 </ul>
 <p>这个参数控制了一个<strong>空闲连接</strong>能够在hikari中能够存活的最长时间，只有当<code>minimumIdle</code>比<code>maxiumnPoolSize</code>小时，才会生效。最小值10秒，默认值10分钟。</p>
 <h1 id="配置分析"><a href="#配置分析" class="headerlink" title="配置分析"></a>配置分析</h1><p>了解了hikari的连接保活机制，我们再来看下线上的参数配置，看是不是由于参数设置不合理引发。我们的线上配置如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">jdbcUrl: jdbc:mysql://data-mysql-cantor-read.***.***:5002/cantor?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=false</span><br><span class="line"># hikari配置中的所有时间单位均为毫秒, 具体可参考：https://github.com/brettwooldridge/HikariCP</span><br><span class="line">type: com.zaxxer.hikari.HikariDataSource</span><br><span class="line"># 连接获取超时时间</span><br><span class="line">connectionTimeout: 10000</span><br><span class="line"># 连接最大生命周期: 半小时，保证比wait_timeout小即可。线上cantor库的wait_timeout=8小时</span><br><span class="line">maxLifetime: 1800000</span><br><span class="line"># minIdle以外的空闲连接存活时间，半小时</span><br><span class="line">idleTimeout: 1800000</span><br><span class="line"># 最小空闲连接数量</span><br><span class="line">minimumIdle: 2</span><br><span class="line"># 最大连接数量，默认为10</span><br><span class="line">maximumPoolSize: 10</span><br><span class="line">poolName: cantor_read_connenction_pool</span><br></pre></td></tr></table></figure></p>
-<p>可以看出连接的最大生命周期为半小时，且空闲连接也是半小时会检测一轮。这远小于线上MySQL的配置（8小时），那为什么会获取失活连接呢？ <br><br>我摸摸我可爱的小头，顿时觉得此事不简单~ <br><br>经过咨询DBA，提供了一个重要线索：从配置中可以看出，我们使用的是vip域名进行连接。而一旦使用域名进行连接，意味着客户端与MYSQL的请求并不是直连，而需要经过美团的四层负载均衡MGW, MGW对空闲连接也有类似的超时主动关闭机制。经过咨询SRE同事，得出我们所使用的MGW超时时间为<strong>3500秒</strong>（可以，已经比8小时缩短了很多，排查出问题的原因胜利在望）。<br><br>这时候回想hikari文档中对于<code>maxLifetime</code>的介绍：should be several seconds shorter than any database or <strong>infrastructure</strong> imposed connection time limit，这个<strong>infrastructure</strong>在我们的case中就是指MGW,该参数并不仅仅只受数据库的限制，还需要依赖基础网络设值限制，hikari作者这老头子还是经验老道啊。</p>
+<p>可以看出连接的最大生命周期为半小时，且空闲连接也是半小时会检测一轮。这远小于线上MySQL的配置（8小时），那为什么会获取失活连接呢？ <br><br>我摸摸我可爱的小头，顿时觉得此事不简单~ <br><br>经过咨询DBA，提供了一个重要线索：从配置中可以看出，我们使用的是vip域名进行连接。而一旦使用域名进行连接，意味着客户端与MYSQL的请求并不是直连，而需要经过美团的四层负载均衡MGW, MGW对空闲连接也有类似的超时主动关闭机制。经过咨询SRE同事，得出我们所使用的MGW超时时间为<strong>3500秒</strong>（可以，已经比8小时缩短了很多，排查出问题的原因胜利在望）。<br><br>这时候回想hikari文档中对于<code>maxLifetime</code>的介绍：should be several seconds shorter than any database or <strong>infrastructure</strong> imposed connection time limit，这个<strong>infrastructure</strong>在我们的case中就是指MGW,该参数并不仅仅只受数据库的限制，还需要依赖基础网络设施限制，hikari作者这老头子还是经验老道啊。</p>
 <blockquote>
 <p>MGW（Meituan Gateway）是一个基于DPDK开发的四层负载均衡网关（LVS有类似的功能）并做了额外的功能定制，其特点是高性能，高稳定。</p>
 </blockquote>
@@ -247,7 +247,7 @@
 <p>这两个参数我们都设置成了1800000毫秒，导致触发了<code>idleTimeout</code>的校正（归0）。</p>
 <p>所以，问题应该定位到了：</p>
 <ol>
-<li><strong>到达<code>maxLifeTime</code>后，回收连接是，该连接碰巧在IN_USE状态 </strong></li>
+<li><strong>到达<code>maxLifeTime</code>后，回收连接时，该连接碰巧在IN_USE状态，回收无效。 </strong></li>
 <li><strong>由于我们的参数设置有误(<code>idleTimeout &gt;= maxLifeTime</code>), 导致并不会进行<code>HouseKeeper</code>周期回收空闲连接任务，这个兜底策略并没有执行。因此该连接永久地留在了连接池中，且状态是NOT_IN_USE<br>可被正常获取。如果该连接空闲时间达到3500秒后，被MGW检测到超时并关闭，如果之后再获取到该连接并进行操作，则会爆出<code>No operations allowed after connection closed.</code></strong></li>
 </ol>
 <h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p>基于以上猜想，我在本地进行了实验。首先我们调整下本地环境的hikari配置, 便于复现问题：</p>
