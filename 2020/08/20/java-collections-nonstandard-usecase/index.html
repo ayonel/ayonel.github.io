@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+  <head><meta name="generator" content="Hexo 3.8.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="ayonel的个人博客">
+  <meta name="keyword" content="ayonel">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      轮子有风险，想造要谨慎 | ayonel的博客
+    
+  </title>
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+  <script src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
+  <script src="/js/qrious.js"></script>
+<script src="/js/gitment.js"></script>
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png">
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ayonel的博客</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">主页</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">标签</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">博文</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">项目</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">关于我</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">主页</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">标签</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">博文</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">项目</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">关于我</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>轮子有风险，想造要谨慎</h2>
+  <p class="post-date">2020-08-20</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>先来看一段代码：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 严格比较A, B两个集合，返回差集对((A - B), (B - A))</span><br><span class="line"> * 以hashCode来比较</span><br><span class="line"> *</span><br><span class="line"> * @param left</span><br><span class="line"> * @param right</span><br><span class="line"> * @param &lt;E&gt;</span><br><span class="line"> * @return</span><br><span class="line"> */</span><br><span class="line">public static &lt;E&gt; Pair&lt;Set&lt;E&gt;, Set&lt;E&gt;&gt; getDiffPair(final Collection&lt;E&gt; left, final Collection&lt;E&gt; right) &#123;</span><br><span class="line">    Set&lt;E&gt; leftSet = new HashSet&lt;&gt;(left);</span><br><span class="line">    Set&lt;E&gt; rightSet = new HashSet&lt;&gt;(right);</span><br><span class="line"></span><br><span class="line">    leftSet.removeAll(right);</span><br><span class="line">    rightSet.removeAll(left);</span><br><span class="line"></span><br><span class="line">    return Pair.of(leftSet, rightSet);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这是我们项目中的一段祖传代码，封装在我们的工具类中。作用很简单输入两个Collection, 求这两个Collection的<strong>互为差集对</strong>，并组装成一个<code>Pair</code>对象。 <br><br><code>Pair</code>就是一个简单的用于组装二元组的类：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class Pair&lt;A, B&gt; &#123;</span><br><span class="line"></span><br><span class="line">    @Nullable</span><br><span class="line">    private final A first;</span><br><span class="line">    @Nullable</span><br><span class="line">    private final B second;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * Creates a new pair.</span><br><span class="line">     *</span><br><span class="line">     * @param first  The first value.</span><br><span class="line">     * @param second The second value.</span><br><span class="line">     */</span><br><span class="line">    public Pair(@Nullable A first, @Nullable B second) &#123;</span><br><span class="line">        this.first = first;</span><br><span class="line">        this.second = second;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个工具方法在我们的项目中被广泛得使用，一直没出过问题，直到今天（2020-08-20），让我差点掉进坑里。<br><br>在开发好一个优化feature后，我将代码部署到预发环境进行验证。在启动验证job后，job一直没有跑完（理论上预期为几分钟），怀疑流程卡在某处，于是开始进行排查。</p>
+<h1 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h1><h2 id="打log确定问题操作"><a href="#打log确定问题操作" class="headerlink" title="打log确定问题操作"></a>打log确定问题操作</h2><p>整个流程是：</p>
+<ol>
+<li>查库</li>
+<li>内存操作（主要是做diff判断，利用上文中的工具方法）</li>
+<li>写库</li>
+</ol>
+<p>于是很快想到是可能是卡在1，3这两个读写库的操作上。于是在代码中添加了一些测试log重新上线验证，结果发现：<br><code>查库完成</code>的log很快被输出，而<code>开始写库</code>的log迟迟没有输出。那么排除一切不可能，剩下的就是真相: 流程卡在第二步内存操作处，<br><br>第二步的内存操作主要就是利用上文中的工具方法计算diff，因为这个diff方法我们代码中经常使用，并没出过问题，所以确实很诡异。</p>
+<h2 id="jstack验证"><a href="#jstack验证" class="headerlink" title="jstack验证"></a>jstack验证</h2><p>既然是卡在内存操作，那么CPU肯定是能吃到100%的，我们可以利用<code>jstack</code>来定位程序卡在何处。</p>
+<ol>
+<li><p><strong>jps确定进程pid</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[sankuai@**-**-chaos-bridges-staging01 ~]$ jps</span><br><span class="line">282761 chaos-meta-offline-bridge-0.0.1-SNAPSHOT.jar</span><br><span class="line">284370 Jps</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>top查看JVM进程中的线程CPU消耗</strong><br>执行 <code>top -Hp 282761</code><br><img src="/2020/08/20/java-collections-nonstandard-usecase/top.png" alt="top -Hp"><br>可以看到<code>283243</code>这个线程的CPU消耗接近100%，大概率这就是我们的问题程序执行线程。</p>
+</li>
+<li><p><strong>线程id转为16进制</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[sankuai@**-**-chaos-bridges-staging01 ~]$ printf &quot;%x\n&quot; 283243</span><br><span class="line">4526b</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p><code>283243</code>转为16进制是<code>4526b</code></p>
+<ol start="4">
+<li><strong>利用jstack 定位问题代码</strong><br>执行 <code>jstack -l 282761 | grep 4526b -A 20</code><br><img src="/2020/08/20/java-collections-nonstandard-usecase/case.png" alt="top -Hp"><br>通过执行多次上述jstack命令，发现线程一直卡在此处，证明这是我们的热点代码。</li>
+</ol>
+<blockquote>
+<p>也可通过JProfiler、Arthas等诊断工具定位。</p>
+</blockquote>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><p>既然定位到了问题代码，就出在上述的工具方法中。且能看出来是在执行<code>ArrayList.contains</code>方法。<br>我们都知道，对于<code>List</code>的<code>contains</code>方法，那可是<code>O(N)</code>的啊。为什么会出现这个操作呢，我们需要来重新审视下这个工具方法。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static &lt;E&gt; Pair&lt;Set&lt;E&gt;, Set&lt;E&gt;&gt; getDiffPair(final Collection&lt;E&gt; left, final Collection&lt;E&gt; right) &#123;</span><br><span class="line">    Set&lt;E&gt; leftSet = new HashSet&lt;&gt;(left);</span><br><span class="line">    Set&lt;E&gt; rightSet = new HashSet&lt;&gt;(right);</span><br><span class="line"></span><br><span class="line">    leftSet.removeAll(right);</span><br><span class="line">    rightSet.removeAll(left);</span><br><span class="line"></span><br><span class="line">    return Pair.of(leftSet, rightSet);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>在我们的case中，我们的入参是两个<code>ArrayList</code>，目的是求出这两个<code>ArrayList</code>的差集对。整个过程为：<br>1: 将这两个<code>ArrayList</code>的内容复制到两个<code>HashSet</code>中。<br>2: 从复制后的两个<code>HashSet</code> 利用<code>removeAll</code>方法移除<code>ArrayList</code>中的元素。<br><br>从<code>HashSet</code>中<code>removeAll</code>一个<code>ArrayList</code>会发生什么，我们来看下JDK源码：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public boolean removeAll(Collection&lt;?&gt; c) &#123;</span><br><span class="line">    // 校验入参不能为空</span><br><span class="line">    Objects.requireNonNull(c);</span><br><span class="line">    // 代表有没有发生了元素移除操作</span><br><span class="line">    boolean modified = false;</span><br><span class="line">    </span><br><span class="line">    // 这是一个优化项，判断本Set和入参集合c的大小，利用小集合驱动大集合</span><br><span class="line">    if (size() &gt; c.size()) &#123;</span><br><span class="line">        for (Iterator&lt;?&gt; i = c.iterator(); i.hasNext(); )</span><br><span class="line">            modified |= remove(i.next());</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        // 如果入参集合c大，则遍历本Set, 判断入参集合c包不包含元素</span><br><span class="line">        for (Iterator&lt;?&gt; i = iterator(); i.hasNext(); ) &#123;</span><br><span class="line">            if (c.contains(i.next())) &#123;</span><br><span class="line">                i.remove();</span><br><span class="line">                modified = true;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return modified;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>坑就坑在JDK的这个优化，假设从一个Set中移除List, JDK会首先判断哪个集合更小。然后遍历小集合，判断小集合中的元素在大集合中存不存在。<br>那在我们的case中，List要比Set大，那么会遍历Set中的元素，<strong>判断该元素在List中存不存在(<code>ArrayList.contains</code>)</strong>，若存在，则进行删除。<br>而<code>ArrayList.contains</code>是个<code>O(N)</code>操作，因此整个<code>removeAll</code>变成了<code>O(N^2)</code>.</p>
+<blockquote>
+<p>有点类似SQL的join优化，用小表驱动大表。</p>
+</blockquote>
+<p>而我们的case中，做diff的两个List大小为100多万。可想而知，这个<code>O(N^2)</code>操作会多慢。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>在封装工具方法时需要格外谨慎，因为工具方法一般都是对一些常用操作的封装，使用频繁，一定要保证健壮性。虽然这个方法使用了很久都没出过问题，但根据墨菲定律，只要有潜在bug，那么该bug一定会发生。</li>
+<li>我们可以使用Guava等优秀工具包中的方法来替换自己封装的方法，毕竟这些包都是经过大规模生产验证的。</li>
+<li>JDK的这个优化看起来值得商榷，本意是为了加速，但在我们的这个case中反而弄巧成拙，个人觉得JDK可以加入一个判断，当元素数量较多时，要规避这种优化，甚至可以用空间换时间，将非Set集合转为Set，再进行移除操作。</li>
+<li>对List求差集，看来不是一个好的主意。</li>
+</ol>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2020/08/18/hikari-keeplive/">
+        <span class="nav-arrow">← </span>
+        
+          一个hikari不规范配置引发的数据库连接失活问题探索
+        
+      </a>
+    
+    
+  </div>
+
+    <!-- NAV END -->
+    
+      <div class="qrcode">
+        <canvas id="share-qrcode"></canvas>
+        <p class="notice">扫描二维码，分享此文章</p>
+      </div>
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+    <aside class="catalog-container">
+  <div class="toc-main">
+    <strong class="toc-title">Catalog</strong>
+    
+      <ol class="toc-nav"><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#背景"><span class="toc-nav-text">背景</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#排查过程"><span class="toc-nav-text">排查过程</span></a><ol class="toc-nav-child"><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#打log确定问题操作"><span class="toc-nav-text">打log确定问题操作</span></a></li><li class="toc-nav-item toc-nav-level-2"><a class="toc-nav-link" href="#jstack验证"><span class="toc-nav-text">jstack验证</span></a></li></ol></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#问题分析"><span class="toc-nav-text">问题分析</span></a></li><li class="toc-nav-item toc-nav-level-1"><a class="toc-nav-link" href="#总结"><span class="toc-nav-text">总结</span></a></li></ol>
+    
+  </div>
+</aside>
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://ayonel.github.io/2020/08/20/java-collections-nonstandard-usecase/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+     // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+        
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+
+    // qrcode
+    var qr = new QRious({
+      element: document.getElementById('share-qrcode'),
+      value: document.location.href
+    });
+
+    // gitment
+    var gitmentConfig = "ayonel";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "轮子有风险，想造要谨慎",
+        owner: "ayonel",
+        repo: "ayonel.github.io",
+        oauth: {
+          client_id: "297b1b500bab1bb05f84",
+          client_secret: "d95e804528ebcd238086be5bf2cc5f3884269bc7"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  })();
+</script>
+
+<script>
+  var disqus_shortname = '';
+  
+  var disqus_url = 'http://ayonel.github.io/2020/08/20/java-collections-nonstandard-usecase/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//go.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2020 | powered by <a href="https://hexo.io" target="_blank">Hexo</a> | Theme by <a href="https://github.com/yanm1ng" target="_blank">yanm1ng</a>
+    <br>
+    Authored by <a href="https://github.com/ayonel" target="_blank">ayonel</a>
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'false';
+  async("//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+<script src="/js/script.js"></script>
+  </body>
+</html>
